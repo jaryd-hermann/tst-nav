@@ -1,7 +1,7 @@
 // Product-specific search forms. Each form: icons on left, centered,
 // ends with a primary Search button. Built on Mantine.
 (function() {
-const { TextInput, Select, NumberInput, Button, Group, Stack, Popover, UnstyledButton, Text, Box, Divider, ActionIcon } = window.mantine;
+const { TextInput, Select, NumberInput, Button, Group, Stack, Popover, UnstyledButton, Text, Box, Divider, ActionIcon, Combobox, useCombobox } = window.mantine;
 
 // ---- Tiny helpers ---------------------------------------------------------
 
@@ -196,67 +196,100 @@ function CounterRow({ label, sub, value, onChange, min = 0 }) {
   );
 }
 
-function LocationField({ label, value, onChange, placeholder, icon = I.pin, flex = 1.4, suggestions, product = 'hotels' }) {
-  const [opened, setOpened] = React.useState(false);
-  const Trigger = React.forwardRef(function Trigger(props, ref) {
-    return (
-      <Box ref={ref} {...props} style={{ flex, minWidth: 180 }}>
+// Unified Mantine Combobox-based place picker used by both the hero
+// search bar (compact=false, 62px) and the compact results bar (compact=true, 48px).
+function PlaceField({ label, value, onChange, placeholder, icon = I.pin, flex = 1.4, minWidth = 180, product = 'hotels', compact = false }) {
+  const store = useCombobox({ onDropdownClose: () => store.resetSelectedOption() });
+  const [search, setSearch] = React.useState(value || '');
+  React.useEffect(() => { setSearch(value || ''); }, [value]);
+
+  const PLACES = window.Places || [];
+  const PRODUCT_HEAD = window.PRODUCT_HEAD || {};
+  const TYPE_META = window.TYPE_META || {};
+  const sections = PRODUCT_HEAD[product] || [{ types: ['city', 'airport'], label: 'Destinations' }];
+  const q = search.toLowerCase().trim();
+
+  const groups = sections.map(({ types, label: grpLabel }) => ({
+    label: grpLabel,
+    items: PLACES
+      .filter(p => p.products.includes(product) && types.includes(p.type))
+      .filter(p => !q || p.name.toLowerCase().includes(q) || (p.sub || '').toLowerCase().includes(q) || (p.code || '').toLowerCase().includes(q))
+      .slice(0, 5),
+  })).filter(g => g.items.length > 0);
+
+  const handleSelect = (placeId) => {
+    const place = PLACES.find(p => p.id === placeId);
+    if (!place) return;
+    const display = place.type === 'airport' ? place.name : `${place.name}, ${place.sub.split(',')[0].trim()}`;
+    onChange(display);
+    setSearch(display);
+    store.closeDropdown();
+  };
+
+  const opened = store.dropdownOpened;
+  const h = compact ? 48 : 62;
+  const borderColor = opened ? 'var(--mantine-color-teal-7)' : compact ? 'transparent' : 'var(--mantine-color-gray-3)';
+  const shadow = opened ? '0 0 0 3px color-mix(in oklab, var(--mantine-color-teal-7) 22%, transparent)' : 'none';
+
+  return (
+    <Combobox store={store} withinPortal onOptionSubmit={handleSelect}>
+      <Combobox.Target>
         <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 12,
-            padding: '0 16px',
-            height: 62,
-            background: '#fff',
-            border: `1px solid ${opened ? 'var(--mantine-color-teal-7)' : 'var(--mantine-color-gray-3)'}`,
-            borderRadius: 12,
-            boxShadow: opened ? '0 0 0 3px color-mix(in oklab, var(--mantine-color-teal-7) 18%, transparent)' : 'none',
-            transition: 'border-color 120ms, box-shadow 120ms',
-          }}
-          onClick={() => setOpened(true)}
+          style={{ flex, minWidth, display: 'flex', alignItems: 'center', gap: compact ? 10 : 12,
+            padding: compact ? '8px 14px' : '0 16px', height: h, background: '#fff',
+            border: `1px solid ${borderColor}`, borderRadius: compact ? 10 : 12,
+            boxShadow: shadow, transition: 'border-color 120ms, box-shadow 120ms', cursor: 'text' }}
+          onClick={() => store.openDropdown()}
         >
           <FieldIcon>{icon}</FieldIcon>
           <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0 }}>
-            <Text size="xs" c="dimmed" style={{ lineHeight: 1.1, fontWeight: 500, letterSpacing: 0.2, textTransform: 'uppercase', fontSize: 10 }}>{label}</Text>
+            <Text c="dimmed" style={{ lineHeight: 1, fontWeight: 500, textTransform: 'uppercase', letterSpacing: compact ? 0.4 : 0.2, fontSize: compact ? 9 : 10 }}>{label}</Text>
             <input
-              value={value}
-              onChange={(e) => onChange(e.target.value)}
-              onFocus={() => setOpened(true)}
+              value={search}
+              onChange={(e) => { const v = e.target.value; setSearch(v); onChange(v); store.openDropdown(); }}
+              onFocus={() => store.openDropdown()}
+              onBlur={() => store.closeDropdown()}
               placeholder={placeholder}
-              style={{ border: 'none', outline: 'none', fontSize: 14, fontWeight: 600, marginTop: 2, color: 'var(--mantine-color-gray-9)', background: 'transparent', width: '100%' }}
+              style={{ border: 'none', outline: 'none', fontSize: compact ? 12 : 14, fontWeight: 600, marginTop: 2,
+                color: search ? 'var(--mantine-color-gray-9)' : 'var(--mantine-color-gray-5)', background: 'transparent', width: '100%' }}
             />
           </div>
         </div>
-      </Box>
-    );
-  });
-  return (
-    <Popover opened={opened} onChange={setOpened} position="bottom-start" offset={6} withinPortal shadow="md">
-      <Popover.Target>
-        <Trigger />
-      </Popover.Target>
-      <Popover.Dropdown p={6} style={{ width: 380 }}>
-        {window.PlaceTypeahead ? (
-          <window.PlaceTypeahead
-            value={value}
-            onChange={onChange}
-            onSelect={(p) => { onChange(p.name + (p.sub && p.type !== 'airport' ? `, ${p.sub.split(',').pop().trim()}` : '')); setOpened(false); }}
-            product={product}
-          />
-        ) : (
-          <Stack gap={2}>
-            <Text size="xs" c="dimmed" px="xs" py={4} fw={600}>Popular destinations</Text>
-            {(suggestions || []).map((s) => (
-              <UnstyledButton key={s} onClick={() => { onChange(s); setOpened(false); }} style={{ padding: '8px 10px', borderRadius: 8, fontSize: 14 }}>
-                <Group gap={10}><FieldIcon>{I.pin}</FieldIcon>{s}</Group>
-              </UnstyledButton>
-            ))}
-          </Stack>
-        )}
-      </Popover.Dropdown>
-    </Popover>
+      </Combobox.Target>
+      <Combobox.Dropdown onMouseDown={(e) => e.preventDefault()}>
+        <Combobox.Options mah={320} style={{ overflowY: 'auto' }}>
+          {groups.length > 0 ? groups.map((g) => (
+            <Combobox.Group key={g.label} label={g.label}>
+              {g.items.map((p) => {
+                const meta = TYPE_META[p.type] || {};
+                return (
+                  <Combobox.Option key={p.id} value={p.id} style={{ padding: '8px 10px' }}>
+                    <Group gap={10} wrap="nowrap">
+                      <Box style={{ width: 30, height: 30, borderRadius: 8, background: 'var(--mantine-color-gray-1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <span style={{ width: 14, height: 14, color: 'var(--mantine-color-gray-6)', display: 'inline-flex' }}>{meta.icon}</span>
+                      </Box>
+                      <Box style={{ minWidth: 0, flex: 1 }}>
+                        <Text size="sm" fw={600} truncate>{p.name}</Text>
+                        <Text size="xs" c="dimmed" truncate>{p.sub}</Text>
+                      </Box>
+                      <Text size="xs" c="dimmed" style={{ textTransform: 'uppercase', letterSpacing: 0.5, fontSize: 10, fontWeight: 600, flexShrink: 0 }}>{meta.label}</Text>
+                    </Group>
+                  </Combobox.Option>
+                );
+              })}
+            </Combobox.Group>
+          )) : (
+            <Combobox.Empty>No results for &ldquo;{search}&rdquo;</Combobox.Empty>
+          )}
+        </Combobox.Options>
+      </Combobox.Dropdown>
+    </Combobox>
   );
+}
+window.PlaceField = PlaceField;
+
+function LocationField({ label, value, onChange, placeholder, icon = I.pin, flex = 1.4, product = 'hotels' }) {
+  return <PlaceField label={label} value={value} onChange={onChange} placeholder={placeholder} icon={icon} flex={flex} product={product} />;
 }
 
 // ---- Form layout shell ----------------------------------------------------
@@ -338,31 +371,78 @@ function SelectField({ label, value, onChange, options, icon, flex = 1, minWidth
 }
 window.SelectField = SelectField;
 
-// Benefits popover — Hertz promo + reward number, in line with car search.
+// Benefits popover — collapsible benefit types each with a NumberInput.
+const BENEFIT_TYPES = [
+  { key: 'cdp',     label: 'Hertz CDP #',              placeholder: 'Corporate discount number', desc: 'Corporate Discount Program' },
+  { key: 'pc',      label: 'Hertz PC #',               placeholder: 'Product code', desc: 'Product / promotional code' },
+  { key: 'rewards', label: 'Hertz Gold Plus Rewards #', placeholder: 'Rewards member number', desc: 'Gold Plus Rewards loyalty number' },
+];
+
 function BenefitsField({ value, onChange, flex = 0.9, minWidth = 160 }) {
   const [opened, setOpened] = React.useState(false);
-  const [promo, setPromo] = React.useState('');
-  const [reward, setReward] = React.useState('');
-  const has = !!(promo || reward);
-  const display = (() => {
-    const parts = [];
-    if (promo) parts.push('Promo');
-    if (reward) parts.push('Rewards');
-    return parts.join(' · ');
-  })();
+  const [vals, setVals] = React.useState({ cdp: '', pc: '', rewards: '' });
+  const [active, setActive] = React.useState({ cdp: false, pc: false, rewards: false });
+
+  const setVal = (key, v) => setVals((prev) => ({ ...prev, [key]: v }));
+  const toggle = (key) => setActive((prev) => ({ ...prev, [key]: !prev[key] }));
+
+  const filledCount = BENEFIT_TYPES.filter(b => active[b.key] && vals[b.key]).length;
+  const display = filledCount > 0 ? `${filledCount} benefit${filledCount > 1 ? 's' : ''} added` : '';
+
+  const apply = () => {
+    const out = BENEFIT_TYPES.filter(b => active[b.key] && vals[b.key]).reduce((acc, b) => ({ ...acc, [b.key]: vals[b.key] }), {});
+    onChange(Object.keys(out).length ? out : 'none');
+    setOpened(false);
+  };
+  const clear = () => {
+    setVals({ cdp: '', pc: '', rewards: '' });
+    setActive({ cdp: false, pc: false, rewards: false });
+    onChange('none');
+  };
+
   return (
     <Popover opened={opened} onChange={setOpened} position="bottom-end" offset={6} withinPortal shadow="md">
       <Popover.Target>
         <FieldShell icon={I.bolt} label="Benefits" value={display} placeholder="Add benefits" onClick={() => setOpened((o) => !o)} opened={opened} flex={flex} minWidth={minWidth} />
       </Popover.Target>
-      <Popover.Dropdown p="md" style={{ width: 280 }}>
-        <Stack gap="sm">
+      <Popover.Dropdown p="md" style={{ width: 300 }}>
+        <Stack gap="md">
           <Text size="sm" fw={700}>Discounts & rewards</Text>
-          <TextInput size="sm" label="Hertz promo code (CDP/PC)" placeholder="e.g. 1234567" value={promo} onChange={(e) => setPromo(e.target.value)} />
-          <TextInput size="sm" label="Hertz Gold Plus Rewards #" placeholder="Member number" value={reward} onChange={(e) => setReward(e.target.value)} />
+          {BENEFIT_TYPES.map((b) => (
+            <Box key={b.key}>
+              <UnstyledButton
+                onClick={() => toggle(b.key)}
+                style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 0' }}
+              >
+                <Box>
+                  <Text size="sm" fw={600}>{b.label}</Text>
+                  <Text size="xs" c="dimmed">{b.desc}</Text>
+                </Box>
+                <Box style={{
+                  width: 18, height: 18, borderRadius: 4, flexShrink: 0,
+                  background: active[b.key] ? 'var(--mantine-color-teal-7)' : 'var(--mantine-color-gray-2)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  {active[b.key] && <span style={{ color: '#fff', fontSize: 11, fontWeight: 700, lineHeight: 1 }}>✓</span>}
+                </Box>
+              </UnstyledButton>
+              {active[b.key] && (
+                <NumberInput
+                  mt={4}
+                  size="sm"
+                  placeholder={b.placeholder}
+                  value={vals[b.key]}
+                  onChange={(v) => setVal(b.key, v)}
+                  hideControls
+                  allowDecimal={false}
+                  allowNegative={false}
+                />
+              )}
+            </Box>
+          ))}
           <Group justify="space-between" mt={4}>
-            <Button size="xs" variant="subtle" onClick={() => { setPromo(''); setReward(''); onChange('none'); }}>Clear</Button>
-            <Button size="xs" color="teal" onClick={() => { onChange(has ? 'set' : 'none'); setOpened(false); }}>Apply</Button>
+            <Button size="xs" variant="subtle" onClick={clear}>Clear</Button>
+            <Button size="xs" color="teal" onClick={apply}>Apply</Button>
           </Group>
         </Stack>
       </Popover.Dropdown>

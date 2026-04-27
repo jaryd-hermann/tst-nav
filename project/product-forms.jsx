@@ -271,24 +271,21 @@ function CompactBase({ fields, onSearch, mobile, summary }) {
   );
 }
 
-// Helper popovers using CompactField as trigger.
-function CompactLocation({ label, value, onChange, icon, flex = 1.4, minWidth = 160, suggestions }) {
+// Compact location field — delegates to PlaceField in compact mode.
+function CompactLocation({ label, value, onChange, icon, flex = 1.4, minWidth = 160, product = 'hotels' }) {
+  if (window.PlaceField) {
+    return <window.PlaceField label={label} value={value} onChange={onChange} placeholder="Anywhere" icon={icon} flex={flex} minWidth={minWidth} product={product} compact />;
+  }
+  // Fallback
   const [opened, setOpened] = React.useState(false);
-  const list = suggestions || ['Paris, France', 'Tokyo, Japan', 'Lisbon, Portugal', 'New York, USA'];
-  const { Popover, Stack: PStack, UnstyledButton: UB, Text: PT } = window.mantine;
+  const { Popover, Stack: PStack, UnstyledButton: UB } = window.mantine;
   return (
     <Popover opened={opened} onChange={setOpened} position="bottom-start" offset={6} withinPortal shadow="md">
       <Popover.Target>
         <window.CompactField icon={icon} label={label} value={value} placeholder="Anywhere" onClick={() => setOpened((o) => !o)} opened={opened} flex={flex} minWidth={minWidth} />
       </Popover.Target>
       <Popover.Dropdown p={6} style={{ minWidth: 240 }}>
-        <PStack gap={2}>
-          {list.map((s) => (
-            <UB key={s} onClick={() => { onChange(s); setOpened(false); }} style={{ padding: '8px 10px', borderRadius: 8, fontSize: 14 }}>
-              {s}
-            </UB>
-          ))}
-        </PStack>
+        <PStack gap={2} />
       </Popover.Dropdown>
     </Popover>
   );
@@ -383,7 +380,7 @@ function HotelCompact({ mobile, onSearch }) {
   const summary = { main: where, sub: `${dates.start} – ${dates.end} · ${travelers.rooms} room, ${travelers.adults} adults` };
   return (
     <CompactBase mobile={mobile} onSearch={onSearch} summary={summary} fields={<>
-      <CompactLocation label="Where" value={where} onChange={setWhere} icon={I.pin} flex={1.4} />
+      <CompactLocation label="Where" value={where} onChange={setWhere} icon={I.pin} flex={1.4} product="hotels" />
       <CompactDate label="When" value={dates} onChange={setDates} icon={I.cal} flex={1.2} />
       <CompactTravelers label="Travelers" value={travelers} onChange={setTravelers} options={['rooms']} flex={1} />
     </>} />
@@ -401,8 +398,8 @@ function FlightCompact({ mobile, onSearch }) {
   const summary = { main: `${from} → ${to}`, sub: `${tripLabel} · ${dates.start} – ${dates.end} · ${travelers.adults} adult · ${cabinLabel}` };
   return (
     <CompactBase mobile={mobile} onSearch={onSearch} summary={summary} fields={<>
-      <CompactLocation label="From" value={from} onChange={setFrom} icon={I.plane} flex={0.9} minWidth={110} />
-      <CompactLocation label="To" value={to} onChange={setTo} icon={I.plane} flex={0.9} minWidth={110} />
+      <CompactLocation label="From" value={from} onChange={setFrom} icon={I.plane} flex={0.9} minWidth={110} product="flights" />
+      <CompactLocation label="To" value={to} onChange={setTo} icon={I.plane} flex={0.9} minWidth={110} product="flights" />
       <CompactSelect label="Trip type" value={tripType} onChange={setTripType} icon={I.swap} options={[{value:'roundtrip',label:'Round trip'},{value:'oneway',label:'One way'},{value:'multi',label:'Multi-city'}]} flex={0.8} minWidth={140} />
       <CompactDate label="Dates" value={dates} onChange={setDates} icon={I.cal} flex={1.1} />
       <CompactTravelers label="Travelers" value={travelers} onChange={setTravelers} flex={0.9} />
@@ -418,7 +415,7 @@ function CarCompact({ mobile, onSearch }) {
   const summary = { main: pickup, sub: `${dates.start} – ${dates.end} · ${returnLoc === 'same' ? 'Same drop-off' : 'Different drop-off'}` };
   return (
     <CompactBase mobile={mobile} onSearch={onSearch} summary={summary} fields={<>
-      <CompactLocation label="Pickup" value={pickup} onChange={setPickup} icon={I.car} flex={1.2} />
+      <CompactLocation label="Pickup" value={pickup} onChange={setPickup} icon={I.car} flex={1.2} product="cars" />
       <CompactSelect label="Drop-off" value={returnLoc} onChange={setReturnLoc} icon={I.car} options={[{value:'same',label:'Same location'},{value:'diff',label:'Different location'}]} flex={0.9} minWidth={150} />
       <window.CarDateTimeField label="Pickup – Drop-off" value={dates} onChange={setDates} icon={I.cal} flex={1.3} minWidth={220} compact />
       <CompactSelect label="Benefits" value={benefits} onChange={setBenefits} icon={I.bolt} options={[{value:'none',label:'No benefits'},{value:'promo',label:'Hertz promo code'},{value:'rewards',label:'Hertz rewards #'},{value:'both',label:'Promo + rewards'}]} flex={0.9} minWidth={150} />
@@ -433,7 +430,7 @@ function CruiseCompact({ mobile, onSearch }) {
   const summary = { main: dest, sub: `${window_.start} – ${window_.end} · ${duration} nights · ${travelers.adults} adults` };
   return (
     <CompactBase mobile={mobile} onSearch={onSearch} summary={summary} fields={<>
-      <CompactLocation label="Destination" value={dest} onChange={setDest} icon={I.pin} flex={1.2} />
+      <CompactLocation label="Destination" value={dest} onChange={setDest} icon={I.pin} flex={1.2} product="cruises" />
       <CompactSelect label="Duration" value={duration} onChange={setDuration} icon={I.cal} options={[{value:'1-4',label:'1–4 nights'},{value:'5-6',label:'5–6 nights'},{value:'7-9',label:'7–9 nights'},{value:'10+',label:'10+ nights'}]} flex={1} />
       <CompactDate label="Departing between" value={window_} onChange={setWindow} icon={I.cal} flex={1.2} minWidth={170} />
       <CompactTravelers label="Guests" value={travelers} onChange={setTravelers} flex={1} />
@@ -449,7 +446,7 @@ function TourCompact({ mobile, onSearch }) {
   const summary = { main: dest, sub: `${dates.start} – ${dates.end} · ${lenLabel} · ${travelers.adults} adults` };
   return (
     <CompactBase mobile={mobile} onSearch={onSearch} summary={summary} fields={<>
-      <CompactLocation label="Destination" value={dest} onChange={setDest} icon={I.pin} flex={1.2} />
+      <CompactLocation label="Destination" value={dest} onChange={setDest} icon={I.pin} flex={1.2} product="tours" />
       <CompactDate label="Departure window" value={dates} onChange={setDates} icon={I.cal} flex={1.3} minWidth={180} />
       <CompactSelect label="Length" value={duration} onChange={setDuration} icon={I.cal} options={[{value:'any',label:'Any length'},{value:'short',label:'3–6 days'},{value:'mid',label:'7–10 days'},{value:'long',label:'11+ days'}]} flex={0.9} />
       <CompactTravelers label="Travelers" value={travelers} onChange={setTravelers} flex={1} />
@@ -462,7 +459,7 @@ function ActivityCompact({ mobile, onSearch }) {
   const summary = { main: dest, sub: date.start || 'Any date' };
   return (
     <CompactBase mobile={mobile} onSearch={onSearch} summary={summary} fields={<>
-      <CompactLocation label="Where" value={dest} onChange={setDest} icon={I.pin} flex={2} />
+      <CompactLocation label="Where" value={dest} onChange={setDest} icon={I.pin} flex={2} product="activities" />
       <CompactDate label="Date" value={date} onChange={setDate} icon={I.cal} flex={1.2} />
     </>} />
   );
@@ -478,8 +475,8 @@ function PackageCompact({ mobile, onSearch }) {
   return (
     <CompactBase mobile={mobile} onSearch={onSearch} summary={summary} fields={<>
       <CompactSelect label="Bundle" value={combo} onChange={setCombo} icon={I.pin} options={[{value:'flight-hotel',label:'Flight + Hotel'},{value:'flight-hotel-car',label:'Flight + Hotel + Car'},{value:'hotel-car',label:'Hotel + Car'}]} flex={1} minWidth={170} />
-      {combo.startsWith('flight') && <CompactLocation label="From" value={from} onChange={setFrom} icon={I.plane} flex={0.9} minWidth={110} />}
-      <CompactLocation label="To" value={to} onChange={setTo} icon={I.pin} flex={1} />
+      {combo.startsWith('flight') && <CompactLocation label="From" value={from} onChange={setFrom} icon={I.plane} flex={0.9} minWidth={110} product="flights" />}
+      <CompactLocation label="To" value={to} onChange={setTo} icon={I.pin} flex={1} product="packages" />
       <CompactDate label="When" value={dates} onChange={setDates} icon={I.cal} flex={1.2} />
       <CompactTravelers label="Travelers" value={travelers} onChange={setTravelers} options={['rooms']} flex={1} />
     </>} />
@@ -492,7 +489,7 @@ function RentalCompact({ mobile, onSearch }) {
   const summary = { main: where, sub: `${dates.start} – ${dates.end} · ${travelers.adults + travelers.children} guests, ${travelers.rooms} bedrooms` };
   return (
     <CompactBase mobile={mobile} onSearch={onSearch} summary={summary} fields={<>
-      <CompactLocation label="Where" value={where} onChange={setWhere} icon={I.pin} flex={1.5} />
+      <CompactLocation label="Where" value={where} onChange={setWhere} icon={I.pin} flex={1.5} product="rentals" />
       <CompactDate label="When" value={dates} onChange={setDates} icon={I.cal} flex={1.2} />
       <CompactTravelers label="Guests" value={travelers} onChange={setTravelers} options={['rooms']} flex={1} />
     </>} />

@@ -165,4 +165,6 @@ function Section({ label, items, onPick }) {
 
 window.Places = PLACES;
 window.PlaceTypeahead = PlaceTypeahead;
+window.PRODUCT_HEAD = PRODUCT_HEAD;
+window.TYPE_META = TYPE_META;
 })();

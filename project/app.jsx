@@ -19,8 +19,24 @@ const ACCENT_HUE = {
   plum:    { c: 'grape',   primaryShade: 8 },
 };
 
+const PRODUCT_IDS = ['hotels','flights','cars','cruises','tours','activities','packages','rentals'];
+
+function parseRoute() {
+  const parts = window.location.pathname.split('/').filter(Boolean);
+  const view = parts[0] === 'results' ? 'results' : 'search';
+  const activeProduct = PRODUCT_IDS.find(p => parts.includes(p)) || TWEAK_DEFAULTS.activeProduct;
+  return { view, activeProduct };
+}
+
+function buildPath(view, product) {
+  return `/${view === 'results' ? 'results' : 'landing'}/${product}`;
+}
+
+// Merge URL-derived state into defaults so useTweaks picks up the right initial values.
+const ROUTE_DEFAULTS = Object.assign({}, TWEAK_DEFAULTS, parseRoute());
+
 function App() {
-  const [tweaks, setTweak] = window.useTweaks(TWEAK_DEFAULTS);
+  const [tweaks, setTweak] = window.useTweaks(ROUTE_DEFAULTS);
   const accent = ACCENT_HUE[tweaks.accent] || ACCENT_HUE.navy;
 
   // Fake "isMobile" — true if user is in mobile preview, OR window narrow.
@@ -33,6 +49,22 @@ function App() {
   }, []);
   const mobilePreview = tweaks.viewport === 'mobile';
   const isMobile = mobilePreview || windowMobile;
+
+  // Keep URL in sync with active view + product.
+  React.useEffect(() => {
+    const desired = buildPath(tweaks.view, tweaks.activeProduct);
+    if (window.location.pathname !== desired) window.history.pushState({}, '', desired);
+  }, [tweaks.view, tweaks.activeProduct]);
+
+  // Handle browser back / forward.
+  React.useEffect(() => {
+    const onPop = () => {
+      const { view, activeProduct } = parseRoute();
+      setTweak({ view, activeProduct });
+    };
+    window.addEventListener('popstate', onPop);
+    return () => window.removeEventListener('popstate', onPop);
+  }, [setTweak]);
 
   const theme = createTheme({
     primaryColor: accent.c,

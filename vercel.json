@@ -1,6 +1,9 @@
 {
   "outputDirectory": "project",
   "rewrites": [
-    { "source": "/(.*)", "destination": "/$1" }
+    { "source": "/landing/:product*", "destination": "/index.html" },
+    { "source": "/results/:product*",  "destination": "/index.html" },
+    { "source": "/landing",            "destination": "/index.html" },
+    { "source": "/",                   "destination": "/index.html" }
   ]
 }
