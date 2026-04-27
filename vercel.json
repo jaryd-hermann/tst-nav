@@ -1,0 +1,6 @@
+{
+  "outputDirectory": "project",
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/$1" }
+  ]
+}

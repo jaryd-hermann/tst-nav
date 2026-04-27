@@ -117,7 +117,7 @@ function App() {
       </Box>
 
       <window.TweaksPanel title="Tweaks">
-        <window.TweakSection title="View">
+        <window.TweakSection label="View">
           <window.TweakRadio
             value={tweaks.view}
             onChange={(v) => setTweak('view', v)}
@@ -127,14 +127,14 @@ function App() {
             ]}
           />
         </window.TweakSection>
-        <window.TweakSection title="Active product">
+        <window.TweakSection label="Active product">
           <window.TweakSelect
             value={tweaks.activeProduct}
             onChange={(v) => setTweak('activeProduct', v)}
             options={window.PRODUCTS.map((p) => ({ value: p.id, label: p.label }))}
           />
         </window.TweakSection>
-        <window.TweakSection title="Viewport">
+        <window.TweakSection label="Viewport">
           <window.TweakRadio
             value={tweaks.viewport}
             onChange={(v) => setTweak('viewport', v)}
@@ -144,7 +144,7 @@ function App() {
             ]}
           />
         </window.TweakSection>
-        <window.TweakSection title="Customer header">
+        <window.TweakSection label="Customer header">
           <window.TweakSelect
             value={tweaks.customerHeader}
             onChange={(v) => setTweak('customerHeader', v)}
