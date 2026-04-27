@@ -232,7 +232,7 @@ function PlaceField({ label, value, onChange, placeholder, icon = I.pin, flex = 
   const shadow = opened ? '0 0 0 3px color-mix(in oklab, var(--mantine-color-teal-7) 22%, transparent)' : 'none';
 
   return (
-    <Combobox store={store} withinPortal onOptionSubmit={handleSelect}>
+    <Combobox store={store} withinPortal width={380} onOptionSubmit={handleSelect}>
       <Combobox.Target>
         <div
           style={{ flex, minWidth, display: 'flex', alignItems: 'center', gap: compact ? 10 : 12,
@@ -256,7 +256,7 @@ function PlaceField({ label, value, onChange, placeholder, icon = I.pin, flex = 
           </div>
         </div>
       </Combobox.Target>
-      <Combobox.Dropdown onMouseDown={(e) => e.preventDefault()} style={{ width: 380 }}>
+      <Combobox.Dropdown onMouseDown={(e) => e.preventDefault()}>
         <Combobox.Options mah={320} style={{ overflowY: 'auto' }}>
           {groups.length > 0 ? groups.map((g) => (
             <Combobox.Group key={g.label} label={g.label}>

@@ -203,16 +203,64 @@ const PRODUCT_LABELS = {
 
 function ResultsPage({ product, mobile }) {
   return (
-    <Box style={{ background: '#fafaf7', minHeight: '40vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <a
-        href={`/landing/${product || 'hotels'}`}
-        style={{ fontSize: 15, fontWeight: 600, color: 'var(--mantine-color-teal-7)', textDecoration: 'none' }}
-        onMouseEnter={(e) => e.currentTarget.style.textDecoration = 'underline'}
-        onMouseLeave={(e) => e.currentTarget.style.textDecoration = 'none'}
-      >
-        ← Back to landing page
-      </a>
+    <Box style={{ background: '#fafaf7', minHeight: '40vh' }}>
+      {/* Max-width annotation for implementers */}
+      <Box style={{ borderBottom: '1px solid var(--mantine-color-gray-2)', background: '#fff' }}>
+        <div style={{ maxWidth: 1280, margin: '0 auto', padding: mobile ? '20px 16px' : '28px 24px', position: 'relative' }}>
+          {/* Red rule lines showing the 1280px boundary */}
+          <div style={{ position: 'absolute', top: 0, bottom: 0, left: 24, width: 1, background: 'rgba(220,38,38,0.25)', pointerEvents: 'none' }} />
+          <div style={{ position: 'absolute', top: 0, bottom: 0, right: 24, width: 1, background: 'rgba(220,38,38,0.25)', pointerEvents: 'none' }} />
+
+          <Box style={{ border: '1.5px dashed rgba(220,38,38,0.4)', borderRadius: 10, padding: mobile ? '16px 14px' : '20px 24px', background: 'rgba(220,38,38,0.03)' }}>
+            <Group justify="space-between" align="flex-start" wrap={mobile ? 'wrap' : 'nowrap'} gap={16}>
+              <Stack gap={6}>
+                <Group gap={8} align="center">
+                  <Box style={{ width: 10, height: 10, borderRadius: '50%', background: 'rgb(220,38,38)', flexShrink: 0 }} />
+                  <Text size="xs" fw={700} style={{ color: 'rgb(220,38,38)', textTransform: 'uppercase', letterSpacing: 0.8 }}>
+                    Layout spec — page content width
+                  </Text>
+                </Group>
+                <Text fw={700} style={{ fontSize: mobile ? 18 : 22, letterSpacing: -0.4 }}>
+                  Max content width: <span style={{ fontFamily: 'ui-monospace, monospace', color: 'rgb(220,38,38)' }}>1280px</span>
+                </Text>
+                <Text size="sm" c="dimmed" style={{ maxWidth: 520, lineHeight: 1.55 }}>
+                  All page content — nav, search strip, and results body — is constrained to a <strong>1280px</strong> max-width container, centered with <span style={{ fontFamily: 'ui-monospace, monospace', fontSize: 12 }}>margin: 0 auto</span> and <span style={{ fontFamily: 'ui-monospace, monospace', fontSize: 12 }}>padding: 0 24px</span>. The full-width background colors still bleed to the viewport edge.
+                </Text>
+              </Stack>
+
+              <Stack gap={8} style={{ flexShrink: 0, minWidth: mobile ? '100%' : 200 }}>
+                <SpecRow label="Max content width" value="1280px" />
+                <SpecRow label="Horizontal padding" value="24px (desktop)" />
+                <SpecRow label="Horizontal padding" value="16px (mobile)" />
+                <SpecRow label="Nav height" value="56px (compact strip)" />
+                <SpecRow label="Hero height" value="auto / 56px min" />
+              </Stack>
+            </Group>
+          </Box>
+        </div>
+      </Box>
+
+      {/* Back link */}
+      <Box style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '48px 24px' }}>
+        <a
+          href={`/landing/${product || 'hotels'}`}
+          style={{ fontSize: 15, fontWeight: 600, color: 'var(--mantine-color-teal-7)', textDecoration: 'none' }}
+          onMouseEnter={(e) => e.currentTarget.style.textDecoration = 'underline'}
+          onMouseLeave={(e) => e.currentTarget.style.textDecoration = 'none'}
+        >
+          ← Back to landing page
+        </a>
+      </Box>
     </Box>
+  );
+}
+
+function SpecRow({ label, value }) {
+  return (
+    <Group justify="space-between" gap={12} wrap="nowrap">
+      <Text size="xs" c="dimmed" style={{ whiteSpace: 'nowrap' }}>{label}</Text>
+      <Text size="xs" fw={700} style={{ fontFamily: 'ui-monospace, monospace', color: 'var(--mantine-color-gray-8)', whiteSpace: 'nowrap' }}>{value}</Text>
+    </Group>
   );
 }
 
