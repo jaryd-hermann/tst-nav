@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Travel — Product Nav</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<!-- React + Babel -->
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<!-- Mantine CSS -->
+<link rel="stylesheet" href="https://unpkg.com/@mantine/core@7.13.4/styles.css" />
+
+<style>
+  html, body { margin: 0; padding: 0; }
+  body { font-family: 'Inter', system-ui, sans-serif; -webkit-font-smoothing: antialiased; background: #fafaf7; color: #1a1a17; }
+  *, *::before, *::after { box-sizing: border-box; }
+  div::-webkit-scrollbar { height: 0; width: 0; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<!-- Importmap so esm.sh modules can resolve "react" / "react-dom" against
+     the UMD globals already on window. -->
+<script type="importmap">
+{
+  "imports": {
+    "react": "./react-shim.js",
+    "react-dom": "./react-dom-shim.js",
+    "react/jsx-runtime": "./jsx-runtime-shim.js"
+  }
+}
+</script>
+<script type="module">
+  import * as MantineCore from 'https://esm.sh/@mantine/core@7.13.4?external=react,react-dom';
+  import * as MantineHooks from 'https://esm.sh/@mantine/hooks@7.13.4?external=react';
+  window.mantine = MantineCore;
+  window.mantineHooks = MantineHooks;
+  window.dispatchEvent(new Event('mantine-ready'));
+</script>
+
+<script>
+  // Once Mantine is on window, inject Babel scripts in order.
+  function bootBabel() {
+    const files = ['tweaks-panel.jsx', 'search-forms.jsx', 'product-forms.jsx', 'whitelabel-headers.jsx', 'product-nav.jsx', 'results-page.jsx', 'app.jsx'];
+    files.forEach((f) => {
+      const s = document.createElement('script');
+      s.type = 'text/babel';
+      s.src = f;
+      s.dataset.presets = 'react';
+      document.body.appendChild(s);
+    });
+  }
+  if (window.mantine) bootBabel();
+  else window.addEventListener('mantine-ready', bootBabel, { once: true });
+</script>
+</body>
+</html>
