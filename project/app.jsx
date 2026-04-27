@@ -7,7 +7,8 @@ const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
   "viewport": "desktop",
   "accent": "navy",
   "view": "search",
-  "customerHeader": "none"
+  "customerHeader": "none",
+  "searchBarStyle": "light"
 }/*EDITMODE-END*/;
 
 const ACCENT_HUE = {
@@ -48,6 +49,14 @@ function App() {
   const accentVar8 = `--mantine-color-${accent.c}-8`;
   const accentVar9 = `--mantine-color-${accent.c}-9`;
 
+  // Search-bar style:
+  //   'light' (default) — soft-blue hero background; cards sit directly on it.
+  //   'dark'            — navy hero background;     cards sit directly on it.
+  const isDarkBar = (tweaks.searchBarStyle || 'light') === 'dark';
+  const heroBg = isDarkBar ? '#1B3A8A' : '#E6EFFB';
+  const heroFg = isDarkBar ? '#fff' : '#1a1a17';
+  const heroSubFg = isDarkBar ? 'rgba(255,255,255,0.78)' : 'var(--mantine-color-gray-7)';
+
   const ProductForm = window.ProductSearch[tweaks.activeProduct] || window.ProductSearch.hotels;
   const ProductCompactForm = window.ProductCompactSearch[tweaks.activeProduct] || window.ProductCompactSearch.hotels;
   const activeProduct = window.PRODUCTS.find((p) => p.id === tweaks.activeProduct) || window.PRODUCTS[0];
@@ -61,6 +70,8 @@ function App() {
       --mantine-color-teal-7: var(${accentVar});
       --mantine-color-teal-8: var(${accentVar8});
       --mantine-color-teal-9: var(${accentVar9});
+      --wf-search-bar-bg: transparent;
+      --wf-results-strip-bg: ${heroBg};
     }
   `;
 
@@ -86,18 +97,18 @@ function App() {
           {!isResults && (
           <Box
             style={{
-              background: '#344570',
-              color: '#fff',
+              background: heroBg,
+              color: heroFg,
               borderBottom: '1px solid var(--mantine-color-gray-2)',
             }}
           >
             <Container size="lg" py={isMobile ? 32 : 56}>
               <Stack align="center" gap={isMobile ? 24 : 36}>
                 <Stack align="center" gap={6} style={{ textAlign: 'center', maxWidth: 720 }}>
-                  <Text component="h1" style={{ fontSize: isMobile ? 30 : 44, lineHeight: 1.05, fontWeight: 800, letterSpacing: -1, textWrap: 'balance', margin: 0, color: '#fff' }}>
+                  <Text component="h1" style={{ fontSize: isMobile ? 30 : 44, lineHeight: 1.05, fontWeight: 800, letterSpacing: -1, textWrap: 'balance', margin: 0, color: heroFg }}>
                     {HEADLINES[tweaks.activeProduct]?.title || 'Plan your next trip'}
                   </Text>
-                  <Text size={isMobile ? 'sm' : 'md'} mt={4} style={{ color: 'rgba(255,255,255,0.75)' }}>
+                  <Text size={isMobile ? 'sm' : 'md'} mt={4} style={{ color: heroSubFg }}>
                     {HEADLINES[tweaks.activeProduct]?.sub || 'Search across the whole world.'}
                   </Text>
                 </Stack>
@@ -154,6 +165,16 @@ function App() {
               { value: 'h2', label: 'Header 2 — Promo + breadcrumb' },
               { value: 'h3', label: 'Header 3 — Slim category tabs' },
               { value: 'h4', label: 'Header 4 — Two-row corporate' },
+            ]}
+          />
+        </window.TweakSection>
+        <window.TweakSection label="Search bar style">
+          <window.TweakRadio
+            value={tweaks.searchBarStyle || 'light'}
+            onChange={(v) => setTweak('searchBarStyle', v)}
+            options={[
+              { value: 'light', label: 'Light' },
+              { value: 'dark', label: 'Dark' },
             ]}
           />
         </window.TweakSection>

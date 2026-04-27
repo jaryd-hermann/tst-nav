@@ -66,7 +66,14 @@ window.SearchIcons = I;
 
 // ---- Field building blocks -----------------------------------------------
 
-function DateRangeField({ label, value, onChange, icon = I.cal, flex = 1.4 }) {
+function DateRangeField(props) {
+  // Delegate to the real 2-month calendar implementation if it has loaded.
+  if (window.DateRangeFieldV2) return window.DateRangeFieldV2(props);
+  // Fallback: old lo-fi popover (kept so this file still works standalone).
+  return DateRangeFieldLegacy(props);
+}
+
+function DateRangeFieldLegacy({ label, value, onChange, icon = I.cal, flex = 1.4 }) {
   const [opened, setOpened] = React.useState(false);
   const display = value?.start && value?.end ? `${value.start} — ${value.end}` : value?.start ? value.start : '';
   return (
@@ -189,9 +196,8 @@ function CounterRow({ label, sub, value, onChange, min = 0 }) {
   );
 }
 
-function LocationField({ label, value, onChange, placeholder, icon = I.pin, flex = 1.4, suggestions }) {
+function LocationField({ label, value, onChange, placeholder, icon = I.pin, flex = 1.4, suggestions, product = 'hotels' }) {
   const [opened, setOpened] = React.useState(false);
-  const list = suggestions || ['Paris, France', 'Tokyo, Japan', 'Lisbon, Portugal', 'New York, USA', 'Reykjavík, Iceland'];
   const Trigger = React.forwardRef(function Trigger(props, ref) {
     return (
       <Box ref={ref} {...props} style={{ flex, minWidth: 180 }}>
@@ -230,17 +236,24 @@ function LocationField({ label, value, onChange, placeholder, icon = I.pin, flex
       <Popover.Target>
         <Trigger />
       </Popover.Target>
-      <Popover.Dropdown p={6} style={{ width: 300 }}>
-        <Stack gap={2}>
-          <Text size="xs" c="dimmed" px="xs" py={4} fw={600}>Popular destinations</Text>
-          {list.filter(s => s.toLowerCase().includes((value || '').toLowerCase())).map((s) => (
-            <UnstyledButton key={s} onClick={() => { onChange(s); setOpened(false); }} style={{ padding: '8px 10px', borderRadius: 8, fontSize: 14 }}
-              onMouseEnter={(e) => e.currentTarget.style.background = 'var(--mantine-color-gray-1)'}
-              onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}>
-              <Group gap={10}><FieldIcon>{I.pin}</FieldIcon>{s}</Group>
-            </UnstyledButton>
-          ))}
-        </Stack>
+      <Popover.Dropdown p={6} style={{ width: 380 }}>
+        {window.PlaceTypeahead ? (
+          <window.PlaceTypeahead
+            value={value}
+            onChange={onChange}
+            onSelect={(p) => { onChange(p.name + (p.sub && p.type !== 'airport' ? `, ${p.sub.split(',').pop().trim()}` : '')); setOpened(false); }}
+            product={product}
+          />
+        ) : (
+          <Stack gap={2}>
+            <Text size="xs" c="dimmed" px="xs" py={4} fw={600}>Popular destinations</Text>
+            {(suggestions || []).map((s) => (
+              <UnstyledButton key={s} onClick={() => { onChange(s); setOpened(false); }} style={{ padding: '8px 10px', borderRadius: 8, fontSize: 14 }}>
+                <Group gap={10}><FieldIcon>{I.pin}</FieldIcon>{s}</Group>
+              </UnstyledButton>
+            ))}
+          </Stack>
+        )}
       </Popover.Dropdown>
     </Popover>
   );
@@ -255,7 +268,7 @@ function SearchFormShell({ children, onSearch, mobile }) {
         display: 'flex',
         flexDirection: mobile ? 'column' : 'row',
         gap: 8,
-        background: '#E6EFFB',
+        background: 'var(--wf-search-bar-bg, #E6EFFB)',
         padding: 8,
         borderRadius: 16,
         alignItems: 'stretch',
@@ -375,7 +388,7 @@ function CompactFormShell({ children, onSearch, mobile, summary }) {
         padding: 6,
         borderRadius: 14,
         alignItems: 'stretch',
-        background: '#E6EFFB',
+        background: 'var(--wf-search-bar-bg, #E6EFFB)',
         border: '1px solid rgba(255,255,255,0.08)',
         width: '100%',
         flexWrap: 'wrap',

@@ -163,8 +163,8 @@ function ProductNav({ active, onSelect, isMobile, cartCount = 2, tripCount = 1, 
       {compact && compactSearch && (
         <div
           style={{
-            background: '#344570',
-            borderTop: '1px solid rgba(255,255,255,0.08)',
+            background: 'var(--wf-results-strip-bg, #fafaf7)',
+            borderTop: '1px solid var(--mantine-color-gray-2)',
           }}
         >
           <div style={{
