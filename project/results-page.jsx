@@ -203,7 +203,16 @@ const PRODUCT_LABELS = {
 
 function ResultsPage({ product, mobile }) {
   return (
-    <Box style={{ background: '#fafaf7', minHeight: '40vh' }} />
+    <Box style={{ background: '#fafaf7', minHeight: '40vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <a
+        href={`/landing/${product || 'hotels'}`}
+        style={{ fontSize: 15, fontWeight: 600, color: 'var(--mantine-color-teal-7)', textDecoration: 'none' }}
+        onMouseEnter={(e) => e.currentTarget.style.textDecoration = 'underline'}
+        onMouseLeave={(e) => e.currentTarget.style.textDecoration = 'none'}
+      >
+        ← Back to landing page
+      </a>
+    </Box>
   );
 }
 

@@ -256,7 +256,7 @@ function PlaceField({ label, value, onChange, placeholder, icon = I.pin, flex = 
           </div>
         </div>
       </Combobox.Target>
-      <Combobox.Dropdown onMouseDown={(e) => e.preventDefault()}>
+      <Combobox.Dropdown onMouseDown={(e) => e.preventDefault()} style={{ width: 380 }}>
         <Combobox.Options mah={320} style={{ overflowY: 'auto' }}>
           {groups.length > 0 ? groups.map((g) => (
             <Combobox.Group key={g.label} label={g.label}>
