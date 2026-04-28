@@ -8,7 +8,8 @@ const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
   "accent": "navy",
   "view": "search",
   "customerHeader": "none",
-  "searchBarStyle": "light"
+  "searchBarStyle": "light",
+  "uiMode": "custom"
 }/*EDITMODE-END*/;
 
 const ACCENT_HUE = {
@@ -89,8 +90,11 @@ function App() {
   const heroFg = isDarkBar ? '#fff' : '#1a1a17';
   const heroSubFg = isDarkBar ? 'rgba(255,255,255,0.78)' : 'var(--mantine-color-gray-7)';
 
-  const ProductForm = window.ProductSearch[tweaks.activeProduct] || window.ProductSearch.hotels;
-  const ProductCompactForm = window.ProductCompactSearch[tweaks.activeProduct] || window.ProductCompactSearch.hotels;
+  const isVanilla = tweaks.uiMode === 'vanilla';
+  const ProductSearch = isVanilla ? window.VanillaProductSearch : window.ProductSearch;
+  const ProductCompactSearch = isVanilla ? window.VanillaProductCompactSearch : window.ProductCompactSearch;
+  const ProductForm = (ProductSearch && ProductSearch[tweaks.activeProduct]) || (window.ProductSearch[tweaks.activeProduct] || window.ProductSearch.hotels);
+  const ProductCompactForm = (ProductCompactSearch && ProductCompactSearch[tweaks.activeProduct]) || (window.ProductCompactSearch[tweaks.activeProduct] || window.ProductCompactSearch.hotels);
   const activeProduct = window.PRODUCTS.find((p) => p.id === tweaks.activeProduct) || window.PRODUCTS[0];
   const isResults = tweaks.view === 'results';
 
@@ -154,12 +158,47 @@ function App() {
           )}
 
           {isResults && (
-            <window.ResultsPage product={tweaks.activeProduct} mobile={isMobile} />
+            <window.ResultsPage product={tweaks.activeProduct} mobile={isMobile} uiMode={tweaks.uiMode} />
           )}
+
+          {/* Mode indicator badge — always visible, click to toggle */}
+          {(() => {
+            const pill = {
+              position: 'fixed', bottom: 20, left: '50%', transform: 'translateX(-50%)',
+              display: 'flex', alignItems: 'center', gap: 8,
+              background: isVanilla ? '#fff' : '#1a1a1a',
+              color: isVanilla ? '#1a1a1a' : '#fff',
+              border: isVanilla ? '1.5px solid var(--mantine-color-gray-3)' : 'none',
+              borderRadius: 999, padding: '7px 14px 7px 10px',
+              boxShadow: '0 4px 20px rgba(0,0,0,0.18)',
+              fontSize: 12, fontWeight: 600, cursor: 'pointer',
+              zIndex: 9999, userSelect: 'none', whiteSpace: 'nowrap',
+            };
+            const dot = {
+              width: 8, height: 8, borderRadius: '50%', flexShrink: 0,
+              background: isVanilla ? '#4263EB' : 'var(--mantine-color-teal-7)',
+            };
+            return (
+              <div style={pill} onClick={() => setTweak('uiMode', isVanilla ? 'custom' : 'vanilla')}>
+                <span style={dot} />
+                {isVanilla ? 'Vanilla Mantine — click for custom UI' : 'Custom UI — click for vanilla Mantine'}
+              </div>
+            );
+          })()}
         </PreviewWrapper>
       </Box>
 
       <window.TweaksPanel title="Tweaks">
+        <window.TweakSection label="UI mode">
+          <window.TweakRadio
+            value={tweaks.uiMode || 'custom'}
+            onChange={(v) => setTweak('uiMode', v)}
+            options={[
+              { value: 'custom', label: 'Custom' },
+              { value: 'vanilla', label: 'Vanilla' },
+            ]}
+          />
+        </window.TweakSection>
         <window.TweakSection label="View">
           <window.TweakRadio
             value={tweaks.view}

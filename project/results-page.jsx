@@ -201,14 +201,14 @@ const PRODUCT_LABELS = {
   packages: 'packages to Mexico', rentals: 'rentals in Maui',
 };
 
-const BRAND_RAMP = ['#E6EFFB','#CCE0F7','#A8CBF3','#74ACE8','#3D89D9','#0064B1','#004E96','#1B3A8A','#152E74','#0F2460'];
+const BRAND_RAMP = ['#E8EEFF','#D0DBFF','#B3C2FF','#8EA3F5','#6080F0','#4263EB','#2E50D4','#1B3A8A','#152E74','#0F2460'];
 
 const SEMANTIC_TOKENS = [
   { name: 'Page bg',        hex: '#fafaf7', usage: 'body — warm off-white' },
-  { name: 'Hero light',     hex: '#E6EFFB', usage: 'brand[0] — search hero, selected tab' },
+  { name: 'Hero light',     hex: '#E8EEFF', usage: 'brand[0] — search hero, selected tab' },
+  { name: 'Search CTA',     hex: '#4263EB', usage: 'brand[5] — search button, primary action' },
   { name: 'Hero dark',      hex: '#1B3A8A', usage: 'brand[7] — dark search bar mode' },
-  { name: 'Active / link',  hex: '#0064B1', usage: 'brand[5] — nav active state, text links' },
-  { name: 'Primary action', hex: '#1B3A8A', usage: 'brand[7] — filled button bg' },
+  { name: 'Active / link',  hex: '#2E50D4', usage: 'brand[6] — nav active state, text links' },
   { name: 'Surface',        hex: '#ffffff', usage: 'cards, inputs, popover backgrounds' },
   { name: 'Border',         hex: '#dee2e6', usage: 'gray[3] — input & card borders' },
 ];
@@ -223,26 +223,44 @@ const TYPE_SCALE = [
 
 const THEME_CODE =
 `// theme.ts — drop into your Mantine 8 project
-import { createTheme, rem } from '@mantine/core';
+import { createTheme, rem, Button, TextInput, Card, Badge } from '@mantine/core';
+
+// ── Named semantic constants — use these in your components ──────────────
+const _heroDark = '#1B3A8A';
+
+export const colors = {
+  pageBg:  '#fafaf7', // body warm off-white
+  surface: '#ffffff', // cards, inputs, popovers
+  border:  '#dee2e6', // gray[3] — input & card borders
+
+  brand: {
+    heroLight: '#E8EEFF', // [0] search hero bg, selected tab
+    tint1:     '#D0DBFF', // [1]
+    tint2:     '#B3C2FF', // [2]
+    tint3:     '#8EA3F5', // [3]
+    mid:       '#6080F0', // [4]
+    cta:       '#4263EB', // [5] search CTA / primary button ← key shade
+    link:      '#2E50D4', // [6] nav active state, text links
+    heroDark:  _heroDark, // [7] dark search bar mode
+    darker:    '#152E74', // [8]
+    darkest:   '#0F2460', // [9]
+  },
+} as const;
+
+// ── Mantine palette array (required by createTheme) ───────────────────────
+const brandPalette = [
+  colors.brand.heroLight, colors.brand.tint1,
+  colors.brand.tint2,     colors.brand.tint3,
+  colors.brand.mid,       colors.brand.cta,
+  colors.brand.link,      colors.brand.heroDark,
+  colors.brand.darker,    colors.brand.darkest,
+] as const;
 
 export const theme = createTheme({
   primaryColor: 'brand',
-  primaryShade: { light: 7, dark: 5 },
+  primaryShade: { light: 5, dark: 4 }, // → colors.brand.cta (#4263EB)
 
-  colors: {
-    brand: [
-      '#E6EFFB', // [0]  hero light bg, selected tab
-      '#CCE0F7', // [1]
-      '#A8CBF3', // [2]
-      '#74ACE8', // [3]
-      '#3D89D9', // [4]
-      '#0064B1', // [5]  active nav, text links
-      '#004E96', // [6]
-      '#1B3A8A', // [7]  primary button, dark hero bg
-      '#152E74', // [8]
-      '#0F2460', // [9]
-    ],
-  },
+  colors: { brand: brandPalette },
 
   fontFamily:
     'Inter, system-ui, -apple-system, sans-serif',
@@ -276,11 +294,11 @@ export const theme = createTheme({
   },
 
   components: {
-    Button: {
+    Button: Button.extend({
       defaultProps: { radius: 'md' },
       styles: { root: { fontWeight: '600' } },
-    },
-    TextInput: {
+    }),
+    TextInput: TextInput.extend({
       styles: {
         label: {
           fontWeight: 600,
@@ -296,17 +314,18 @@ export const theme = createTheme({
           border: '1px solid var(--mantine-color-gray-3)',
         },
       },
-    },
-    Card: {
+    }),
+    Card: Card.extend({
       defaultProps: { radius: 'md', withBorder: true },
-    },
-    Badge: {
+    }),
+    Badge: Badge.extend({
       defaultProps: { radius: 'sm', variant: 'default' },
-    },
+    }),
   },
 });`;
 
-function ResultsPage({ product, mobile }) {
+function ResultsPage({ product, mobile, uiMode }) {
+  const isVanilla = uiMode === 'vanilla';
   return (
     <Box style={{ background: '#fafaf7' }}>
       {/* Page width spec */}
@@ -340,11 +359,15 @@ function ResultsPage({ product, mobile }) {
         </div>
       </Box>
 
-      {/* Theme doc */}
-      <ThemeDoc mobile={mobile} />
-
-      {/* Atoms doc */}
-      <AtomsDoc mobile={mobile} />
+      {/* Design system docs — switch between custom and vanilla */}
+      {isVanilla ? (
+        <VanillaMantineDoc mobile={mobile} />
+      ) : (
+        <>
+          <ThemeDoc mobile={mobile} />
+          <AtomsDoc mobile={mobile} />
+        </>
+      )}
 
       {/* Back link */}
       <Box style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 24px', borderTop: '1px solid var(--mantine-color-gray-2)' }}>
@@ -390,20 +413,45 @@ function ThemeDoc({ mobile }) {
             {/* Brand palette */}
             <Stack gap={10}>
               <DocLabel>Brand color ramp — <span style={{ fontFamily: 'ui-monospace, monospace', fontWeight: 400 }}>colors.brand</span></DocLabel>
-              <div style={{ display: 'flex', borderRadius: 10, overflow: 'hidden', border: '1px solid var(--mantine-color-gray-2)', height: 48 }}>
-                {BRAND_RAMP.map((hex, i) => (
-                  <div key={i} title={`brand[${i}]  ${hex}`}
-                    style={{ flex: 1, background: hex, position: 'relative', display: 'flex', alignItems: 'flex-end', justifyContent: 'center', paddingBottom: 4 }}>
-                    <span style={{ fontSize: 8, fontWeight: 700, fontFamily: 'ui-monospace, monospace',
-                      color: i < 4 ? 'rgba(0,0,0,0.4)' : 'rgba(255,255,255,0.6)' }}>[{i}]</span>
-                  </div>
-                ))}
+
+              {/* Ramp strip */}
+              <div style={{ position: 'relative' }}>
+                <div style={{ display: 'flex', borderRadius: 10, overflow: 'hidden', border: '1px solid var(--mantine-color-gray-2)', height: 48 }}>
+                  {BRAND_RAMP.map((hex, i) => (
+                    <div key={i} title={`brand[${i}]  ${hex}`}
+                      style={{ flex: 1, background: hex, position: 'relative', display: 'flex', alignItems: 'flex-end', justifyContent: 'center', paddingBottom: 4,
+                        outline: i === 5 ? '2.5px solid #fff' : 'none', outlineOffset: -2.5 }}>
+                      <span style={{ fontSize: 8, fontWeight: 700, fontFamily: 'ui-monospace, monospace',
+                        color: i < 4 ? 'rgba(0,0,0,0.4)' : 'rgba(255,255,255,0.7)' }}>[{i}]</span>
+                    </div>
+                  ))}
+                </div>
+                {/* CTA pointer */}
+                <div style={{ position: 'absolute', top: '100%', left: `${5 * 10 + 5}%`, transform: 'translateX(-50%)', marginTop: 3, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1, pointerEvents: 'none' }}>
+                  <div style={{ width: 0, height: 0, borderLeft: '5px solid transparent', borderRight: '5px solid transparent', borderBottom: '5px solid #4263EB' }} />
+                  <span style={{ fontSize: 9, fontWeight: 700, fontFamily: 'ui-monospace, monospace', color: '#4263EB', letterSpacing: 0.3, whiteSpace: 'nowrap' }}>CTA</span>
+                </div>
               </div>
+
+              {/* CTA featured swatch */}
+              <Box style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px', borderRadius: 8,
+                background: '#4263EB', marginTop: 18 }}>
+                <div style={{ width: 36, height: 36, borderRadius: 8, background: '#fff', flexShrink: 0,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <div style={{ width: 22, height: 22, borderRadius: 5, background: '#4263EB' }} />
+                </div>
+                <Box>
+                  <Text size="xs" fw={800} style={{ color: '#fff', fontFamily: 'ui-monospace, monospace', letterSpacing: 0.2 }}>colors.brand.cta · #4263EB</Text>
+                  <Text style={{ fontSize: 10, color: 'rgba(255,255,255,0.75)', lineHeight: 1.4 }}>Search CTA · primary button · brand[5] · primaryShade light:5</Text>
+                </Box>
+              </Box>
+
+              {/* Other callout swatches */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px 16px' }}>
                 {[
                   { i: 0, note: 'Hero light / tab bg' },
-                  { i: 5, note: 'Active nav / links' },
-                  { i: 7, note: 'Primary button / dark hero' },
+                  { i: 6, note: 'Active nav / links' },
+                  { i: 7, note: 'Dark hero bg' },
                   { i: 9, note: 'Deepest navy' },
                 ].map(({ i, note }) => (
                   <Group key={i} gap={8} wrap="nowrap" align="center">
@@ -687,6 +735,7 @@ function AtomsDoc({ mobile }) {
     {
       name: 'Date picker — 2-month (desktop)',
       desc: 'Two RangeCalendar grids side-by-side in a 540px Popover. Standard layout for desktop hero and compact forms.',
+      wide: true,
       preview: <DualCalendarMoleculePreview />,
       rows: [
         ['dropdown',      'Popover.Dropdown · shadow md · width 540 · p="md"'],
@@ -829,8 +878,12 @@ function AtomsDoc({ mobile }) {
         {/* Molecules */}
         <Box>
           <DocLabel>Molecules — dropdown &amp; popover contents</DocLabel>
-          <div style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : '1fr 1fr 1fr', gap: 14, marginTop: 12 }}>
-            {MOLECULES.map((m) => <AtomCard key={m.name} atom={m} />)}
+          <div style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : '1fr 1fr', gap: 14, marginTop: 12 }}>
+            {MOLECULES.map((m) => (
+              <div key={m.name} style={m.wide && !mobile ? { gridColumn: '1 / -1' } : undefined}>
+                <AtomCard atom={m} />
+              </div>
+            ))}
           </div>
         </Box>
 
@@ -908,12 +961,13 @@ function CalendarMonthGrid({ cells, monthLabel, start = null, end = null }) {
 
 function DualCalendarMoleculePreview() {
   return (
-    <Box style={{ background:'#fff', borderRadius:10, border:'1px solid var(--mantine-color-gray-2)', padding:'10px 12px' }}>
-      <div style={{ display:'flex', gap:12, overflowX:'auto' }}>
+    <Box style={{ background:'#fff', borderRadius:10, border:'1px solid var(--mantine-color-gray-2)', padding:'14px 20px' }}>
+      <div style={{ display:'flex', gap:32, justifyContent:'center', flexWrap:'nowrap', overflowX:'auto' }}>
         <CalendarMonthGrid cells={MAY_CELLS} monthLabel="May 2026" start={10} end={17} />
+        <div style={{ width:1, background:'var(--mantine-color-gray-2)', flexShrink:0, alignSelf:'stretch' }} />
         <CalendarMonthGrid cells={JUN_CELLS} monthLabel="Jun 2026" />
       </div>
-      <Group justify="flex-end" mt={8} gap={6}>
+      <Group justify="flex-end" mt={10} gap={6}>
         <Button size="xs" variant="subtle" style={{ pointerEvents:'none' }}>Clear</Button>
         <Button size="xs" color="teal" style={{ pointerEvents:'none' }}>Done</Button>
       </Group>
@@ -1030,7 +1084,7 @@ function TypeaheadMoleculePreview() {
 function AtomCard({ atom }) {
   const { name, desc, preview, rows } = atom;
   return (
-    <Box style={{ background: '#fff', border: '1px solid var(--mantine-color-gray-2)', borderRadius: 12, overflow: 'hidden' }}>
+    <Box style={{ background: '#fff', border: '1px solid var(--mantine-color-gray-2)', borderRadius: 12, overflow: 'hidden', height: '100%' }}>
       <Box style={{ padding: '14px 16px 12px', background: '#fafaf7',
         borderBottom: '1px solid var(--mantine-color-gray-1)' }}>
         {preview}
@@ -1065,6 +1119,272 @@ function ShellTokenCard({ title, rows }) {
           </Box>
         ))}
       </Stack>
+    </Box>
+  );
+}
+
+// ── Vanilla Mantine component reference ──────────────────────────────────
+function VanillaMantineDoc({ mobile }) {
+  const { TextInput, Select, Autocomplete, NumberInput, SegmentedControl, Button, Paper, Group, Stack, Badge: MBadge } = window.mantine;
+
+  // Small icon helper for previews
+  const I = window.SearchIcons || {};
+  const Ic = ({ icon, size = 14 }) => (
+    <span style={{ width: size, height: size, display: 'inline-flex', flexShrink: 0,
+      color: 'var(--mantine-color-gray-5)' }}>{icon}</span>
+  );
+
+  const COMPONENTS = [
+    {
+      name: 'Autocomplete',
+      pkg: '@mantine/core',
+      docs: 'https://mantine.dev/core/autocomplete/',
+      usedFor: 'Location & place fields across all products',
+      props: [
+        ['data', 'string[] — suggestion list'],
+        ['leftSection', 'ReactNode — icon'],
+        ['label', 'string — field label above input'],
+        ['placeholder', 'string'],
+        ['size', '"sm" compact / default hero'],
+      ],
+      preview: (
+        <Autocomplete
+          label="Where to"
+          placeholder="City, hotel, or landmark"
+          data={['Paris, France', 'London, UK', 'Tokyo, Japan']}
+          leftSection={<Ic icon={I.pin} />}
+        />
+      ),
+    },
+    {
+      name: 'TextInput',
+      pkg: '@mantine/core',
+      docs: 'https://mantine.dev/core/text-input/',
+      usedFor: 'Date fields (type="date"), time fields (type="time")',
+      props: [
+        ['type', '"date" | "time" | "text"'],
+        ['leftSection', 'ReactNode — icon'],
+        ['label', 'string — field label'],
+        ['size', '"sm" compact / default hero'],
+      ],
+      preview: (
+        <TextInput
+          type="date"
+          label="Check-in"
+          defaultValue="2026-05-12"
+          leftSection={<Ic icon={I.cal} />}
+        />
+      ),
+    },
+    {
+      name: 'Select',
+      pkg: '@mantine/core',
+      docs: 'https://mantine.dev/core/select/',
+      usedFor: 'Trip type, cabin class, duration, drop-off, bundle type',
+      props: [
+        ['data', '{ value, label }[] | string[]'],
+        ['leftSection', 'ReactNode — icon'],
+        ['label', 'string'],
+        ['size', '"sm" compact / default hero'],
+      ],
+      preview: (
+        <Select
+          label="Cabin class"
+          defaultValue="economy"
+          leftSection={<Ic icon={I.plane} />}
+          data={[
+            { value: 'economy', label: 'Economy' },
+            { value: 'premium', label: 'Premium economy' },
+            { value: 'business', label: 'Business' },
+            { value: 'first', label: 'First class' },
+          ]}
+        />
+      ),
+    },
+    {
+      name: 'NumberInput',
+      pkg: '@mantine/core',
+      docs: 'https://mantine.dev/core/number-input/',
+      usedFor: 'Adults, children, rooms, guests, bedroom counts',
+      props: [
+        ['min', 'number — minimum (typically 1)'],
+        ['max', 'number — maximum'],
+        ['leftSection', 'ReactNode — icon'],
+        ['label', 'string'],
+      ],
+      preview: (
+        <NumberInput
+          label="Adults"
+          defaultValue={2}
+          min={1}
+          max={10}
+          leftSection={<Ic icon={I.user} />}
+          style={{ maxWidth: 180 }}
+        />
+      ),
+    },
+    {
+      name: 'SegmentedControl',
+      pkg: '@mantine/core',
+      docs: 'https://mantine.dev/core/segmented-control/',
+      usedFor: 'Trip type selector in Flights (Round trip / One way / Multi-city)',
+      props: [
+        ['data', '{ value, label }[]'],
+        ['color', '"brand" — accent for active segment'],
+        ['value / onChange', 'controlled'],
+      ],
+      preview: (
+        <SegmentedControl
+          color="brand"
+          defaultValue="roundtrip"
+          data={[
+            { value: 'roundtrip', label: 'Round trip' },
+            { value: 'oneway', label: 'One way' },
+            { value: 'multi', label: 'Multi-city' },
+          ]}
+        />
+      ),
+    },
+    {
+      name: 'Button',
+      pkg: '@mantine/core',
+      docs: 'https://mantine.dev/core/button/',
+      usedFor: 'Search CTA on every product form',
+      props: [
+        ['color', '"brand" — only customisation'],
+        ['size', '"lg" hero / "sm" compact strip'],
+        ['variant', '"filled" (default)'],
+      ],
+      preview: (
+        <Group gap="sm">
+          <Button color="brand" size="lg">Search hotels</Button>
+          <Button color="brand" size="sm">Search</Button>
+        </Group>
+      ),
+    },
+    {
+      name: 'Paper',
+      pkg: '@mantine/core',
+      docs: 'https://mantine.dev/core/paper/',
+      usedFor: 'Hero search form container — wraps the input row',
+      props: [
+        ['shadow', '"md"'],
+        ['withBorder', 'true'],
+        ['radius', '"md"'],
+        ['p', '"lg"'],
+      ],
+      preview: (
+        <Paper shadow="md" withBorder radius="md" p="md">
+          <Text size="sm" c="dimmed" ta="center">Search form lives here</Text>
+        </Paper>
+      ),
+    },
+    {
+      name: 'Group',
+      pkg: '@mantine/core',
+      docs: 'https://mantine.dev/core/group/',
+      usedFor: 'Horizontal row that holds all inputs + CTA button',
+      props: [
+        ['align', '"flex-end" — baseline-aligns labels + inputs'],
+        ['gap', '"md" hero / "xs" compact'],
+        ['wrap', '"wrap" hero (responsive) / "nowrap" compact'],
+      ],
+      preview: (
+        <Group gap="xs" align="center">
+          <MBadge variant="outline">Autocomplete</MBadge>
+          <MBadge variant="outline">TextInput</MBadge>
+          <MBadge variant="outline">Button</MBadge>
+        </Group>
+      ),
+    },
+  ];
+
+  return (
+    <Box style={{ background: '#fff', borderTop: '1px solid var(--mantine-color-gray-2)' }}>
+      <div style={{ maxWidth: 1280, margin: '0 auto', padding: mobile ? '32px 16px' : '56px 24px' }}>
+
+        {/* Header */}
+        <Stack gap={6} mb={mobile ? 28 : 44}>
+          <Group gap={8} align="center">
+            <Text size="xs" fw={700} tt="uppercase" c="dimmed" style={{ letterSpacing: 1 }}>Design system</Text>
+            <MBadge color="brand" variant="light" radius="sm" size="sm">Vanilla Mantine</MBadge>
+          </Group>
+          <Text fw={800} style={{ fontSize: mobile ? 22 : 30, letterSpacing: -0.5 }}>Mantine components — no customisation beyond color</Text>
+          <Text size="sm" c="dimmed" style={{ maxWidth: 620, lineHeight: 1.65 }}>
+            Every input in this version uses a stock{' '}
+            <code style={{ fontFamily: 'ui-monospace, monospace', fontSize: 12, background: 'var(--mantine-color-gray-1)', padding: '1px 5px', borderRadius: 4 }}>@mantine/core</code>{' '}
+            component. The only customisation is <code style={{ fontFamily: 'ui-monospace, monospace', fontSize: 12, background: 'var(--mantine-color-gray-1)', padding: '1px 5px', borderRadius: 4 }}>color="brand"</code> on{' '}
+            <code style={{ fontFamily: 'ui-monospace, monospace', fontSize: 12, background: 'var(--mantine-color-gray-1)', padding: '1px 5px', borderRadius: 4 }}>Button</code> and{' '}
+            <code style={{ fontFamily: 'ui-monospace, monospace', fontSize: 12, background: 'var(--mantine-color-gray-1)', padding: '1px 5px', borderRadius: 4 }}>SegmentedControl</code>.
+            No custom heights, shadows, or border overrides.
+          </Text>
+        </Stack>
+
+        {/* Structure overview */}
+        <Box mb={mobile ? 32 : 48} style={{ background: 'var(--mantine-color-gray-0)', border: '1px solid var(--mantine-color-gray-2)', borderRadius: 12, padding: mobile ? '16px' : '22px 28px' }}>
+          <DocLabel>Form structure — applies to all products</DocLabel>
+          <div style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : '1fr 1fr 1fr', gap: 16, marginTop: 14 }}>
+            {[
+              { component: 'Paper', role: 'Hero container', props: 'shadow="md" withBorder radius="md" p="lg"' },
+              { component: 'Group', role: 'Input row', props: 'align="flex-end" gap="md" wrap="wrap"' },
+              { component: 'Stack', role: 'Flights wrapper', props: 'gap="md" (SegmentedControl above Group)' },
+            ].map(({ component, role, props }) => (
+              <Box key={component} style={{ background: '#fff', border: '1px solid var(--mantine-color-gray-2)', borderRadius: 8, padding: '12px 14px' }}>
+                <Group gap={8} mb={4}>
+                  <Text fw={700} size="sm" style={{ fontFamily: 'ui-monospace, monospace' }}>{component}</Text>
+                  <MBadge variant="light" color="brand" size="xs" radius="sm">{role}</MBadge>
+                </Group>
+                <Text size="xs" style={{ fontFamily: 'ui-monospace, monospace', color: 'var(--mantine-color-gray-6)', lineHeight: 1.5 }}>{props}</Text>
+              </Box>
+            ))}
+          </div>
+        </Box>
+
+        {/* Component cards */}
+        <DocLabel>Input &amp; control components</DocLabel>
+        <div style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : '1fr 1fr', gap: 16, marginTop: 14 }}>
+          {COMPONENTS.map((c) => (
+            <Box key={c.name} style={{ background: '#fafaf7', border: '1px solid var(--mantine-color-gray-2)', borderRadius: 12, overflow: 'hidden' }}>
+              {/* Preview */}
+              <Box style={{ padding: '18px 20px', background: '#fff', borderBottom: '1px solid var(--mantine-color-gray-1)' }}>
+                {c.preview}
+              </Box>
+              {/* Info */}
+              <Box style={{ padding: '14px 16px' }}>
+                <Group gap={8} mb={4} wrap="nowrap" align="baseline">
+                  <Text fw={800} size="sm" style={{ fontFamily: 'ui-monospace, monospace' }}>{c.name}</Text>
+                  <Text size="xs" c="dimmed" style={{ fontFamily: 'ui-monospace, monospace' }}>from {c.pkg}</Text>
+                  <a href={c.docs} target="_blank" rel="noopener" style={{ marginLeft: 'auto', fontSize: 10, fontWeight: 600, color: 'var(--mantine-color-brand-5, #4263EB)', textDecoration: 'none', whiteSpace: 'nowrap' }}>docs ↗</a>
+                </Group>
+                <Text size="xs" c="dimmed" mb={10} style={{ lineHeight: 1.5 }}>{c.usedFor}</Text>
+                <div style={{ borderTop: '1px solid var(--mantine-color-gray-1)', paddingTop: 8 }}>
+                  {c.props.map(([prop, val]) => (
+                    <div key={prop} style={{ display: 'flex', justifyContent: 'space-between', gap: 8, padding: '2px 0', alignItems: 'baseline' }}>
+                      <span style={{ fontSize: 11, fontFamily: 'ui-monospace, monospace', color: 'var(--mantine-color-gray-7)', flexShrink: 0 }}>{prop}</span>
+                      <span style={{ fontSize: 11, color: 'var(--mantine-color-gray-5)', textAlign: 'right' }}>{val}</span>
+                    </div>
+                  ))}
+                </div>
+              </Box>
+            </Box>
+          ))}
+        </div>
+
+        {/* Note about @mantine/dates */}
+        <Box mt={mobile ? 28 : 40} style={{ background: 'var(--mantine-color-blue-0)', border: '1px solid var(--mantine-color-blue-2)', borderRadius: 10, padding: '14px 18px' }}>
+          <Group gap={8} mb={4}>
+            <Text size="xs" fw={700} style={{ color: 'var(--mantine-color-blue-7)' }}>Note — @mantine/dates</Text>
+          </Group>
+          <Text size="xs" style={{ color: 'var(--mantine-color-blue-8)', lineHeight: 1.6 }}>
+            Production apps should replace the <code style={{ fontFamily: 'ui-monospace, monospace', fontSize: 11 }}>TextInput type="date"</code> fields with{' '}
+            <code style={{ fontFamily: 'ui-monospace, monospace', fontSize: 11 }}>DatePickerInput</code> or{' '}
+            <code style={{ fontFamily: 'ui-monospace, monospace', fontSize: 11 }}>DateRangePicker</code> from{' '}
+            <strong>@mantine/dates</strong> for a fully branded calendar popover. This demo uses{' '}
+            <code style={{ fontFamily: 'ui-monospace, monospace', fontSize: 11 }}>TextInput type="date"</code> since the dates package isn't loaded here.
+          </Text>
+        </Box>
+
+      </div>
     </Box>
   );
 }
