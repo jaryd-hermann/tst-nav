@@ -593,6 +593,19 @@ function AtomsDoc({ mobile }) {
       ],
     },
     {
+      name: 'Standard select field',
+      desc: 'Generic list-selection trigger using the same CompactField shell. Used for Trip type, Cabin class, Car type, sort order, and any single-choice list.',
+      preview: <FieldPreview icon={I.swap} label="CABIN CLASS" value="Economy" />,
+      rows: [
+        ['component',     'CompactField (same shell as all inputs)'],
+        ['icon',          'context-specific icon from SearchIcons'],
+        ['value display', 'selected option label · fw 600'],
+        ['placeholder',   '"Select" · gray[5]'],
+        ['opened border', 'teal[7] + 22% glow (shared focus tokens)'],
+        ['dropdown',      'Popover.Dropdown · see molecule below'],
+      ],
+    },
+    {
       name: 'Search CTA',
       desc: 'Primary submit. Rightmost element in every form. color="teal" resolves to brand via CSS var alias. Never icon-only.',
       preview: (
@@ -672,24 +685,52 @@ function AtomsDoc({ mobile }) {
 
   const MOLECULES = [
     {
-      name: 'Date picker — calendar dropdown',
-      desc: 'Two RangeCalendar components side-by-side inside a 540px Popover. Four visual states per day cell.',
-      preview: <CalendarMoleculePreview />,
+      name: 'Date picker — 2-month (desktop)',
+      desc: 'Two RangeCalendar grids side-by-side in a 540px Popover. Standard layout for desktop hero and compact forms.',
+      preview: <DualCalendarMoleculePreview />,
       rows: [
-        ['dropdown',     'Popover.Dropdown · shadow md · width 540 · p="md"'],
-        ['layout',       '2 × RangeCalendar · gap 16px · each 244px wide'],
-        ['cell height',  '32px · 7-column grid · gap 2px'],
-        ['day dot',      '28×28px · radius xl (circle) · centered in cell'],
-        ['range fill',   'absolute · teal[0] · 4px inset top/bottom · full width'],
-        ['fill — start', 'right half only (left: 50%)'],
-        ['fill — end',   'left half only (right: 50%)'],
-        ['selected dot', 'teal[7] bg · #fff · fw 600'],
-        ['in-range dot', 'transparent · #1a1a1a text'],
-        ['weekday',      '11px · 600 · #9aa1a8 · 2px padding'],
-        ['month header', 'size sm · fw 600 · centered · between nav arrows'],
-        ['nav arrows',   'ActionIcon · variant subtle · color gray · size sm'],
-        ['Clear btn',    'Button · size xs · variant subtle'],
-        ['Done btn',     'Button · size xs · color teal'],
+        ['dropdown',      'Popover.Dropdown · shadow md · width 540 · p="md"'],
+        ['layout',        '2 × RangeCalendar in a flex row · gap 16px'],
+        ['each grid',     '244px wide · 7-col grid · cell height 32px'],
+        ['day dot',       '28×28px · radius xl · centered'],
+        ['range fill',    'absolute · teal[0] · inset 4px 0'],
+        ['fill — start',  'right half only (left: 50%)'],
+        ['fill — end',    'left half only (right: 50%)'],
+        ['selected dot',  'teal[7] bg · #fff · fw 600'],
+        ['in-range dot',  'transparent · #1a1a1a'],
+        ['disabled',      'transparent · #cbcfd4'],
+        ['weekday',       '11px · 600 · #9aa1a8'],
+        ['month header',  'size sm · fw 600'],
+        ['nav arrows',    'ActionIcon · variant subtle · gray · size sm'],
+        ['Clear / Done',  'Button size xs · subtle / teal'],
+      ],
+    },
+    {
+      name: 'Date picker — 1-month (mobile/narrow)',
+      desc: 'Single RangeCalendar in a ~280px Popover. Used when viewport is too narrow for the 2-month layout.',
+      preview: <SingleCalendarMoleculePreview />,
+      rows: [
+        ['dropdown',      'Popover.Dropdown · shadow md · width ~280 · p="md"'],
+        ['layout',        '1 × RangeCalendar'],
+        ['grid',          '244px wide · same day states as 2-month'],
+        ['nav arrows',    'prev/next month — user navigates to see second month'],
+        ['day dot',       '28×28px · radius xl · same states'],
+        ['Clear / Done',  'Button size xs · subtle / teal'],
+      ],
+    },
+    {
+      name: 'Standard select — dropdown',
+      desc: 'Flat option list in a Popover. Selected item uses teal[0] bg + teal[8] text. Hover uses gray[1]. No icons.',
+      preview: <SelectDropdownMoleculePreview />,
+      rows: [
+        ['container',      'Popover.Dropdown · p={6} · minWidth 200 · shadow md'],
+        ['option stack',   'Stack gap={2}'],
+        ['option',         'UnstyledButton · padding 8px 10px · borderRadius 8px'],
+        ['default',        'transparent bg · inherit color · fw 500'],
+        ['selected bg',    'teal[0]'],
+        ['selected text',  'teal[8] · fw 700'],
+        ['hover bg',       'gray[1]'],
+        ['font size',      '14px'],
       ],
     },
     {
@@ -742,15 +783,8 @@ function AtomsDoc({ mobile }) {
         {/* Field shell anatomy — hero vs compact */}
         <Box mb={mobile ? 36 : 48}>
           <DocLabel>Field shell — shared anatomy</DocLabel>
-          <Box mt={12} style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : '1fr 1fr', gap: 12, marginBottom: 16 }}>
-            <Stack gap={6}>
-              <Text size="xs" fw={600} c="dimmed">Hero — 62px (landing search bar)</Text>
-              <FieldPreview hero icon={I.pin} label="WHERE" value="Paris, France" />
-            </Stack>
-            <Stack gap={6}>
-              <Text size="xs" fw={600} c="dimmed">Compact — 48px (results strip &amp; all dropdowns)</Text>
-              <FieldPreview icon={I.pin} label="WHERE" value="Paris, France" />
-            </Stack>
+          <Box mt={12} mb={16}>
+            <FieldPreview icon={I.pin} label="WHERE" value="Paris, France" />
           </Box>
           <div style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr 1fr' : 'repeat(4,1fr)', gap: 10 }}>
             <ShellTokenCard title="Shell" rows={[
@@ -831,34 +865,36 @@ function FieldPreview({ icon, label, value, hero = false }) {
 }
 
 // ── Molecule previews ─────────────────────────────────────────────────────
-function CalendarMoleculePreview() {
-  const I = window.SearchIcons || {};
-  const START = 10, END = 17;
-  const cells = [null, null, null, null, null, ...Array.from({ length: 31 }, (_, i) => i + 1)];
+
+// May 2026 starts Friday (offset 5), June 2026 starts Monday (offset 1)
+const MAY_CELLS = [null,null,null,null,null, ...Array.from({length:31},(_,i)=>i+1)];
+const JUN_CELLS = [null, ...Array.from({length:30},(_,i)=>i+1)];
+
+function CalendarMonthGrid({ cells, monthLabel, start = null, end = null }) {
   return (
-    <Box style={{ width: '100%', maxWidth: 260, background: '#fff', borderRadius: 10,
-      border: '1px solid var(--mantine-color-gray-2)', padding: '10px 10px 6px' }}>
-      <Group justify="space-between" mb={6}>
-        <ActionIcon variant="subtle" color="gray" size="sm">‹</ActionIcon>
-        <Text size="sm" fw={600}>May 2026</Text>
-        <ActionIcon variant="subtle" color="gray" size="sm">›</ActionIcon>
+    <Box style={{ flex: '0 0 auto' }}>
+      <Group justify="space-between" mb={6} gap={4}>
+        <ActionIcon variant="subtle" color="gray" size="sm" style={{ pointerEvents: 'none' }}>‹</ActionIcon>
+        <Text size="xs" fw={600}>{monthLabel}</Text>
+        <ActionIcon variant="subtle" color="gray" size="sm" style={{ pointerEvents: 'none' }}>›</ActionIcon>
       </Group>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: 1 }}>
-        {['Su','Mo','Tu','We','Th','Fr','Sa'].map((d, i) => (
-          <div key={i} style={{ textAlign: 'center', color: '#9aa1a8', fontSize: 10, fontWeight: 600, padding: '2px 0' }}>{d}</div>
+        {['Su','Mo','Tu','We','Th','Fr','Sa'].map((d,i) => (
+          <div key={i} style={{ textAlign:'center', color:'#9aa1a8', fontSize:9, fontWeight:600, padding:'1px 0' }}>{d}</div>
         ))}
-        {cells.slice(0, 35).map((d, i) => {
-          const isSt = d === START, isEn = d === END;
-          const inR = d !== null && d > START && d < END;
+        {cells.slice(0,35).map((d,i) => {
+          const isSt = start && d === start;
+          const isEn = end && d === end;
+          const inR  = start && end && d !== null && d > start && d < end;
           const isEP = isSt || isEn;
           return (
-            <div key={i} style={{ position: 'relative', height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              {inR && <span style={{ position: 'absolute', inset: '3px 0', background: 'var(--mantine-color-teal-0)', zIndex: 0 }} />}
-              {isSt && <span style={{ position: 'absolute', top: 3, bottom: 3, right: 0, left: '50%', background: 'var(--mantine-color-teal-0)', zIndex: 0 }} />}
-              {isEn && <span style={{ position: 'absolute', top: 3, bottom: 3, left: 0, right: '50%', background: 'var(--mantine-color-teal-0)', zIndex: 0 }} />}
+            <div key={i} style={{ position:'relative', height:26, display:'flex', alignItems:'center', justifyContent:'center' }}>
+              {inR  && <span style={{ position:'absolute', inset:'2px 0', background:'var(--mantine-color-teal-0)', zIndex:0 }} />}
+              {isSt && <span style={{ position:'absolute', top:2, bottom:2, right:0, left:'50%', background:'var(--mantine-color-teal-0)', zIndex:0 }} />}
+              {isEn && <span style={{ position:'absolute', top:2, bottom:2, left:0, right:'50%', background:'var(--mantine-color-teal-0)', zIndex:0 }} />}
               {d !== null && (
-                <span style={{ position: 'relative', zIndex: 1, width: 26, height: 26, borderRadius: '50%', display: 'flex',
-                  alignItems: 'center', justifyContent: 'center', fontSize: 11,
+                <span style={{ position:'relative', zIndex:1, width:22, height:22, borderRadius:'50%',
+                  display:'flex', alignItems:'center', justifyContent:'center', fontSize:10,
                   background: isEP ? 'var(--mantine-color-teal-7)' : 'transparent',
                   color: isEP ? '#fff' : '#1a1a1a', fontWeight: isEP ? 600 : 400 }}>{d}</span>
               )}
@@ -866,10 +902,55 @@ function CalendarMoleculePreview() {
           );
         })}
       </div>
+    </Box>
+  );
+}
+
+function DualCalendarMoleculePreview() {
+  return (
+    <Box style={{ background:'#fff', borderRadius:10, border:'1px solid var(--mantine-color-gray-2)', padding:'10px 12px' }}>
+      <div style={{ display:'flex', gap:12, overflowX:'auto' }}>
+        <CalendarMonthGrid cells={MAY_CELLS} monthLabel="May 2026" start={10} end={17} />
+        <CalendarMonthGrid cells={JUN_CELLS} monthLabel="Jun 2026" />
+      </div>
       <Group justify="flex-end" mt={8} gap={6}>
-        <Button size="xs" variant="subtle" style={{ pointerEvents: 'none' }}>Clear</Button>
-        <Button size="xs" color="teal" style={{ pointerEvents: 'none' }}>Done</Button>
+        <Button size="xs" variant="subtle" style={{ pointerEvents:'none' }}>Clear</Button>
+        <Button size="xs" color="teal" style={{ pointerEvents:'none' }}>Done</Button>
       </Group>
+    </Box>
+  );
+}
+
+function SingleCalendarMoleculePreview() {
+  return (
+    <Box style={{ background:'#fff', borderRadius:10, border:'1px solid var(--mantine-color-gray-2)', padding:'10px 12px', maxWidth: 220 }}>
+      <CalendarMonthGrid cells={MAY_CELLS} monthLabel="May 2026" start={10} end={17} />
+      <Group justify="flex-end" mt={8} gap={6}>
+        <Button size="xs" variant="subtle" style={{ pointerEvents:'none' }}>Clear</Button>
+        <Button size="xs" color="teal" style={{ pointerEvents:'none' }}>Done</Button>
+      </Group>
+    </Box>
+  );
+}
+
+function SelectDropdownMoleculePreview() {
+  const OPTIONS = ['Round trip', 'One way', 'Multi-city'];
+  const selected = 'Round trip';
+  return (
+    <Box style={{ background:'#fff', borderRadius:10, border:'1px solid var(--mantine-color-gray-2)', padding:6, minWidth:180 }}>
+      <Stack gap={2}>
+        {OPTIONS.map((opt) => {
+          const isSel = opt === selected;
+          return (
+            <div key={opt} style={{ padding:'8px 10px', borderRadius:8, fontSize:13,
+              fontWeight: isSel ? 700 : 500,
+              color: isSel ? 'var(--mantine-color-teal-8)' : 'inherit',
+              background: isSel ? 'var(--mantine-color-teal-0)' : 'transparent' }}>
+              {opt}
+            </div>
+          );
+        })}
+      </Stack>
     </Box>
   );
 }
