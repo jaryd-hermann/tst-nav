@@ -514,156 +514,215 @@ function AtomsDoc({ mobile }) {
   const ATOMS = [
     {
       name: 'Place / Typeahead',
-      desc: 'Mantine Combobox with grouped results: cities, airports, hotels, landmarks, neighborhoods. Each group labelled separately.',
+      desc: 'Mantine Combobox with grouped results: cities, airports, hotels, landmarks, neighborhoods. Width fixed at 380px regardless of trigger width.',
       preview: <FieldPreview icon={I.pin} label="WHERE" value="Paris, France" />,
-      compactPreview: <FieldPreview icon={I.pin} label="WHERE" value="Paris, France" compact />,
       rows: [
         ['component',         'Combobox + useCombobox hook'],
-        ['dropdown width',    '380px fixed (not target-width)'],
+        ['dropdown width',    '380px fixed (Combobox width prop)'],
         ['max results/group', '5'],
         ['group header',      '10px · 700 · uppercase · gray[5]'],
-        ['option row height', '48px'],
-        ['option icon bg',    'gray[1] · 30×30px · radius 8px'],
-        ['option icon',       '14px · gray[6]'],
-        ['option name',       '14px · 600 · gray[9]'],
-        ['option sub-text',   '12px · gray[5]'],
-        ['option type badge', '10px · 600 · uppercase · gray[5]'],
+        ['option height',     '~48px (8px padding × 2 + content)'],
+        ['option icon box',   '30×30px · radius 8px · gray[1]'],
+        ['option icon',       '14×14px · gray[6]'],
+        ['option name',       'size sm · fw 600 · gray[9] · truncate'],
+        ['option sub-text',   'size xs · dimmed · truncate'],
+        ['type badge',        '10px · fw 600 · uppercase · ls 0.5 · gray[5]'],
       ],
     },
     {
       name: 'Date range picker',
-      desc: 'Two-month inline calendar inside a Popover. Click start date → click end date. Hover shows range preview in real time.',
+      desc: 'Two-month inline calendar inside Popover. Click start → click end. Hover previews the range. Trigger uses the same CompactField shell.',
       preview: <FieldPreview icon={I.cal} label="WHEN" value="Dec 10 — Dec 17" />,
-      compactPreview: <FieldPreview icon={I.cal} label="WHEN" value="Dec 10 — Dec 17" compact />,
       rows: [
-        ['component',          'Custom RangeCalendar in Popover'],
-        ['dropdown width',     '540px'],
-        ['months shown',       '2 side-by-side'],
-        ['day cell size',      '36×36px'],
-        ['selected range bg',  'brand[0] = #E6EFFB'],
-        ['start / end dot',    'brand[7] filled circle, 36px'],
-        ['hover preview',      'brand[0] bg on hovered range'],
-        ['month nav buttons',  'ActionIcon subtle, gray[6]'],
-        ['weekday label',      '11px · 600 · uppercase · gray[5]'],
+        ['component',       'Custom RangeCalendar in Popover'],
+        ['dropdown width',  '540px'],
+        ['dropdown p',      'p="md" = 16px'],
+        ['months shown',    '2 × RangeCalendar (width 244px each)'],
+        ['day cell h',      '32px'],
+        ['day dot',         '28×28px · radius xl (circle)'],
+        ['dot — selected',  'teal[7] bg · #fff text · fw 600'],
+        ['dot — in-range',  'teal[0] bg fill · #1a1a1a text'],
+        ['range fill h',    'inset: 4px 0 (24px strip)'],
+        ['dot — default',   'transparent · #1a1a1a text'],
+        ['dot — disabled',  'transparent · #cbcfd4 text'],
+        ['weekday label',   '11px · 600 · #9aa1a8'],
+        ['month nav',       'ActionIcon variant subtle · color gray · size sm'],
+        ['footer Clear',    'Button size xs · variant subtle'],
+        ['footer Done',     'Button size xs · color teal'],
       ],
     },
     {
       name: 'Car pickup — date & time',
-      desc: 'Calendar for date + separate time select with 15-minute increments. Two independent fields: pickup and drop-off.',
+      desc: 'Calendar date + time select (15-min increments). Two independent triggers: pickup and drop-off.',
       preview: <FieldPreview icon={I.cal} label="PICKUP" value="Dec 10 · 10:00 AM" />,
-      compactPreview: <FieldPreview icon={I.cal} label="PICKUP" value="Dec 10 · 10:00 AM" compact />,
       rows: [
-        ['component',        'CarDateTimeField (custom)'],
-        ['dropdown width',   '560px'],
-        ['time increments',  '15 min (96 options / day)'],
-        ['time select h',    '48px · Mantine Select'],
-        ['section divider',  '1px solid gray[2]'],
-        ['section label',    '11px · 700 · uppercase · gray[5]'],
+        ['component',       'CarDateTimeField (custom)'],
+        ['dropdown width',  '560px'],
+        ['dropdown p',      'p="md" = 16px'],
+        ['time increments', '15 min (96 options / day)'],
+        ['time select h',   '48px compact field'],
+        ['section label',   '11px · 700 · uppercase · gray[5]'],
+        ['section divider', '1px solid gray[2]'],
+        ['footer Done',     'Button size xs · color teal'],
       ],
     },
     {
       name: 'Travelers / Passengers',
-      desc: 'FieldShell trigger opens a Popover with ± steppers per category. Trigger shows a formatted summary string.',
+      desc: 'CompactField trigger opens a 260px Popover with ± steppers per category. Trigger value is a formatted summary string.',
       preview: <FieldPreview icon={I.user} label="TRAVELERS" value="2 adults · 0 children · 1 room" />,
-      compactPreview: <FieldPreview icon={I.user} label="TRAVELERS" value="2 adults · 1 room" compact />,
       rows: [
-        ['component',              'Custom popover with steppers'],
-        ['stepper size',           '32×32px · radius md'],
-        ['stepper variant',        'outline · brand[5] border + icon'],
-        ['stepper icon size',      '14px'],
-        ['count value',            '14px · 700 · gray[9]'],
-        ['category label',         '13px · 500 · gray[8]'],
-        ['category sub-label',     '11px · gray[5]  e.g. "Age 0–12"'],
-        ['separator line',         '1px solid gray[1]'],
+        ['component',          'Custom Popover with ActionIcon steppers'],
+        ['dropdown width',     '260px'],
+        ['dropdown p',         'p="md" = 16px'],
+        ['row layout',         'Group justify="space-between"'],
+        ['category label',     'size sm · fw 600'],
+        ['stepper',            'ActionIcon · variant default · size md · radius xl'],
+        ['count',              'Text size sm · fw 600 · w={20} · centered'],
+        ['footer Done',        'Button size xs · color teal · justify flex-end'],
       ],
     },
     {
-      name: 'Trip type — button select',
-      desc: 'Mutually-exclusive option toggle. Compact-only: never 62px. Renders as Mantine Select or ButtonGroup depending on options count.',
+      name: 'Trip type select',
+      desc: 'Compact-only field. Mutually exclusive options (Round trip / One way / Multi-city). Always 48px.',
       preview: <FieldPreview icon={I.swap} label="TRIP TYPE" value="Round trip" />,
-      compactPreview: <FieldPreview icon={I.swap} label="TRIP TYPE" value="Round trip" compact />,
       rows: [
         ['component',    'Mantine Select (compact, always 48px)'],
-        ['height',       'rem(48) — compact only, no hero variant'],
+        ['height',       'rem(48) — no hero variant'],
         ['icon',         'SearchIcons.swap · 18px · gray[6]'],
-        ['value size',   'rem(13)'],
-        ['value weight', '600'],
+        ['value size',   'rem(13) · fw 600'],
       ],
     },
     {
       name: 'Search CTA',
-      desc: 'Primary submit action. Always the rightmost element. Matches surrounding field height. Never icon-only.',
+      desc: 'Primary submit. Rightmost element in every form. color="teal" resolves to brand via CSS var alias. Never icon-only.',
       preview: (
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, height: 62, padding: '0 28px',
-          background: '#1B3A8A', borderRadius: 12, color: '#fff', cursor: 'pointer' }}>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, height: 48,
+          padding: '0 18px', background: 'var(--mantine-color-teal-7)',
+          borderRadius: 10, color: '#fff', cursor: 'pointer' }}>
           <span style={{ display: 'inline-flex', width: 16, height: 16 }}>{I.search}</span>
-          <span style={{ fontSize: 15, fontWeight: 700 }}>Search</span>
-        </div>
-      ),
-      compactPreview: (
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, height: 48, padding: '0 22px',
-          background: '#1B3A8A', borderRadius: 10, color: '#fff', cursor: 'pointer' }}>
-          <span style={{ display: 'inline-flex', width: 14, height: 14 }}>{I.search}</span>
-          <span style={{ fontSize: 13, fontWeight: 700 }}>Search</span>
+          <span style={{ fontSize: 14, fontWeight: 600 }}>Search</span>
         </div>
       ),
       rows: [
-        ['component',     'Mantine Button, variant filled'],
-        ['bg',            'brand[7] = #1B3A8A'],
-        ['hover bg',      'brand[8] = #152E74'],
-        ['height',        'rem(62) hero / rem(48) compact'],
-        ['border-radius', 'rem(12) hero / rem(10) compact'],
-        ['padding',       '0 rem(28) hero / 0 rem(22) compact'],
-        ['icon',          'SearchIcons.search · 16px · #fff · left'],
-        ['label',         '"Search" · rem(15) · 700 · #fff'],
+        ['component',      'Mantine Button · variant filled'],
+        ['color',          'teal (→ brand via CSS var alias)'],
+        ['hero h',         '62px · borderRadius rem(12) · px rem(22)'],
+        ['compact h',      '48px · borderRadius rem(10) · px rem(18)'],
+        ['hero minWidth',  '130px'],
+        ['compact minWidth','110px'],
+        ['icon',           'SearchIcons.search · 18px hero / 16px compact · #fff'],
+        ['label',          '"Search" · fw 600 · #fff'],
       ],
     },
     {
       name: 'Stepper ± button',
-      desc: 'Icon-only increment / decrement. Used inside Travelers and Benefits popovers. Disables at min/max bounds.',
+      desc: 'Used inside Travelers and Benefits popovers. Fully round — ActionIcon with radius xl. Disables at min/max.',
       preview: (
-        <Group gap={16} align="center" style={{ padding: '6px 0' }}>
-          <div style={{ width: 32, height: 32, borderRadius: 8, border: '1px solid #0064B1', display: 'flex',
-            alignItems: 'center', justifyContent: 'center', color: '#0064B1', fontSize: 18, fontWeight: 300, cursor: 'pointer' }}>−</div>
-          <Text fw={700} style={{ fontSize: 16, minWidth: 24, textAlign: 'center' }}>2</Text>
-          <div style={{ width: 32, height: 32, borderRadius: 8, border: '1px solid #0064B1', display: 'flex',
-            alignItems: 'center', justifyContent: 'center', color: '#0064B1', fontSize: 18, fontWeight: 300, cursor: 'pointer' }}>+</div>
+        <Group gap={16} align="center" style={{ padding: '4px 0' }}>
+          <ActionIcon variant="default" size="md" radius="xl" style={{ pointerEvents: 'none' }}>−</ActionIcon>
+          <Text fw={600} size="sm" style={{ width: 20, textAlign: 'center' }}>2</Text>
+          <ActionIcon variant="default" size="md" radius="xl" style={{ pointerEvents: 'none' }}>+</ActionIcon>
         </Group>
       ),
       rows: [
-        ['component',        'Mantine ActionIcon, variant outline'],
-        ['size',             '32×32px'],
-        ['border-radius',    'radius md = rem(8)'],
-        ['border-color',     'brand[5] = #0064B1'],
-        ['icon color',       'brand[5]'],
-        ['icon size',        'rem(14)'],
-        ['disabled opacity', '0.35'],
-        ['count font',       'rem(14–16) · 700 · gray[9]'],
+        ['component',        'Mantine ActionIcon'],
+        ['variant',          'default (gray bg + gray border)'],
+        ['size',             'md = 36×36px'],
+        ['radius',           'xl = fully round (circle)'],
+        ['icon',             '− or + text, inherits text color'],
+        ['disabled opacity', '0.35 (at min / max)'],
+        ['count display',    'Text · size sm · fw 600 · w={20} · centered'],
       ],
     },
     {
-      name: 'Sort / filter pill',
-      desc: 'Small toggle button for sort order and filter presets. Default = ghost (gray border). Active = filled brand.',
+      name: 'Mobile search summary pill',
+      desc: 'On mobile, the compact search strip collapses to a single full-width tappable card showing the current search state.',
       preview: (
-        <Group gap={8} style={{ padding: '4px 0' }}>
-          {[['Recommended', true], ['Price: Low', false], ['Rating', false]].map(([label, active]) => (
-            <div key={label} style={{ height: 28, padding: '0 12px', borderRadius: 8, display: 'flex', alignItems: 'center',
-              background: active ? '#1B3A8A' : '#fff', border: active ? 'none' : '1px solid var(--mantine-color-gray-3)',
-              color: active ? '#fff' : 'var(--mantine-color-gray-7)', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
-              {label}
+        <div style={{ width: '100%', background: '#fff', borderRadius: 12, padding: '14px 16px',
+          display: 'flex', alignItems: 'center', gap: 14,
+          boxShadow: '0 4px 16px rgba(0,0,0,0.18)' }}>
+          <span style={{ display: 'inline-flex', width: 22, height: 22,
+            color: 'var(--mantine-color-gray-7)', flexShrink: 0 }}>{I.search}</span>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontWeight: 700, fontSize: 15, color: '#1a1a17',
+              lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              Paris, France
             </div>
-          ))}
-        </Group>
+            <div style={{ fontSize: 13, color: 'var(--mantine-color-gray-6)',
+              marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              May 12 – May 19 · 1 room, 2 adults
+            </div>
+          </div>
+        </div>
       ),
       rows: [
-        ['component',     'Mantine Button, size xs'],
-        ['height',        'rem(28)'],
-        ['padding',       '0 rem(12)'],
-        ['border-radius', 'radius md = rem(8)'],
-        ['inactive',      '#fff · 1px solid gray[3] · gray[7] text'],
-        ['active',        'brand[7] filled · #fff text'],
-        ['font-size',     'rem(12)'],
-        ['font-weight',   '600'],
+        ['component',   'UnstyledButton (full-width tappable)'],
+        ['width',       '100%'],
+        ['background',  '#fff'],
+        ['padding',     'rem(14) rem(16)'],
+        ['border-radius','rem(12)'],
+        ['box-shadow',  '0 4px 16px rgba(0,0,0,0.18)'],
+        ['icon',        'SearchIcons.search · 22×22px · gray[7] · flex-shrink 0'],
+        ['main text',   'fw 700 · size md (~16px) · #1a1a17 · lineHeight 1.2'],
+        ['sub text',    'size sm (~14px) · dimmed · marginTop 2px'],
+        ['tap action',  'opens full search sheet / expands fields'],
+      ],
+    },
+  ];
+
+  const MOLECULES = [
+    {
+      name: 'Date picker — calendar dropdown',
+      desc: 'Two RangeCalendar components side-by-side inside a 540px Popover. Four visual states per day cell.',
+      preview: <CalendarMoleculePreview />,
+      rows: [
+        ['dropdown',     'Popover.Dropdown · shadow md · width 540 · p="md"'],
+        ['layout',       '2 × RangeCalendar · gap 16px · each 244px wide'],
+        ['cell height',  '32px · 7-column grid · gap 2px'],
+        ['day dot',      '28×28px · radius xl (circle) · centered in cell'],
+        ['range fill',   'absolute · teal[0] · 4px inset top/bottom · full width'],
+        ['fill — start', 'right half only (left: 50%)'],
+        ['fill — end',   'left half only (right: 50%)'],
+        ['selected dot', 'teal[7] bg · #fff · fw 600'],
+        ['in-range dot', 'transparent · #1a1a1a text'],
+        ['weekday',      '11px · 600 · #9aa1a8 · 2px padding'],
+        ['month header', 'size sm · fw 600 · centered · between nav arrows'],
+        ['nav arrows',   'ActionIcon · variant subtle · color gray · size sm'],
+        ['Clear btn',    'Button · size xs · variant subtle'],
+        ['Done btn',     'Button · size xs · color teal'],
+      ],
+    },
+    {
+      name: 'Travelers — popover',
+      desc: 'Category rows stacked in a 260px popover. Each row: label left, stepper group right.',
+      preview: <TravelersMoleculePreview />,
+      rows: [
+        ['container',      'Popover.Dropdown · width 260 · p="md"'],
+        ['row',            'Group justify="space-between" wrap="nowrap"'],
+        ['stack gap',      'Stack gap="sm" = 12px between rows'],
+        ['label',          'Text · size sm · fw 600'],
+        ['stepper group',  'Group gap={6} wrap="nowrap"'],
+        ['− / + buttons',  'ActionIcon · variant default · size md · radius xl'],
+        ['count',          'Text · size sm · fw 600 · w={20} · ta="center"'],
+        ['Done footer',    'Group justify="flex-end" · Button size xs · color teal'],
+      ],
+    },
+    {
+      name: 'Place typeahead — results dropdown',
+      desc: 'Combobox dropdown with Combobox.Group sections. Each option: icon box + name + sub-text + type badge.',
+      preview: <TypeaheadMoleculePreview />,
+      rows: [
+        ['container',    'Combobox.Dropdown · width 380 fixed · via Combobox width prop'],
+        ['scroll',       'Combobox.Options mah={320} overflowY auto'],
+        ['group header', 'Combobox.Group label — Mantine default style'],
+        ['option pad',   '8px 10px'],
+        ['icon box',     '30×30px · radius 8px · gray[1] bg · flex-shrink 0'],
+        ['icon',         '14×14px · gray[6]'],
+        ['name',         'size sm · fw 600 · truncate'],
+        ['sub-text',     'size xs · dimmed · truncate'],
+        ['type badge',   '10px · fw 600 · uppercase · ls 0.5 · gray[5]'],
+        ['empty state',  'Combobox.Empty — "No results for …"'],
+        ['blur guard',   'Combobox.Dropdown onMouseDown preventDefault (prevents blur race)'],
       ],
     },
   ];
@@ -674,65 +733,70 @@ function AtomsDoc({ mobile }) {
 
         <Stack gap={6} mb={mobile ? 28 : 44}>
           <Text size="xs" fw={700} tt="uppercase" c="dimmed" style={{ letterSpacing: 1 }}>Atomic design</Text>
-          <Text fw={800} style={{ fontSize: mobile ? 22 : 30, letterSpacing: -0.5 }}>Atoms — inputs &amp; controls</Text>
+          <Text fw={800} style={{ fontSize: mobile ? 22 : 30, letterSpacing: -0.5 }}>Atoms &amp; molecules</Text>
           <Text size="sm" c="dimmed" style={{ maxWidth: 560, lineHeight: 1.65 }}>
-            Every search input is built from one shared shell. The token tables below specify exactly how each atom variant looks — map them to any Mantine component.
+            Every input shares a common compact shell. Below: the shared shell tokens, each input atom (compact only — all forms use this size), then the molecule specs for each dropdown/popover.
           </Text>
         </Stack>
 
-        {/* Field shell anatomy — applies to all inputs */}
+        {/* Field shell anatomy — hero vs compact */}
         <Box mb={mobile ? 36 : 48}>
           <DocLabel>Field shell — shared anatomy</DocLabel>
           <Box mt={12} style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : '1fr 1fr', gap: 12, marginBottom: 16 }}>
             <Stack gap={6}>
               <Text size="xs" fw={600} c="dimmed">Hero — 62px (landing search bar)</Text>
-              <FieldPreview icon={I.pin} label="WHERE" value="Paris, France" />
+              <FieldPreview hero icon={I.pin} label="WHERE" value="Paris, France" />
             </Stack>
             <Stack gap={6}>
-              <Text size="xs" fw={600} c="dimmed">Compact — 48px (results strip)</Text>
-              <FieldPreview icon={I.pin} label="WHERE" value="Paris, France" compact />
+              <Text size="xs" fw={600} c="dimmed">Compact — 48px (results strip &amp; all dropdowns)</Text>
+              <FieldPreview icon={I.pin} label="WHERE" value="Paris, France" />
             </Stack>
           </Box>
           <div style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr 1fr' : 'repeat(4,1fr)', gap: 10 }}>
             <ShellTokenCard title="Shell" rows={[
-              ['height',        '62px  /  48px'],
-              ['border-radius', 'rem(12)  /  rem(10)'],
-              ['padding',       '0 rem(16)  /  rem(8) rem(14)'],
+              ['height',        '62px hero / 48px compact'],
+              ['border-radius', 'rem(12) hero / rem(10) compact'],
+              ['padding',       '0 rem(16) / rem(8) rem(14)'],
               ['background',    '#fff'],
               ['border',        '1px solid gray[3]'],
-              ['border (compact inactive)', 'transparent'],
+              ['border compact', 'transparent (inactive)'],
             ]} />
             <ShellTokenCard title="Focus state" rows={[
-              ['border-color', 'brand[5] = #0064B1'],
-              ['box-shadow',   'brand[5] at 22% opacity, spread 3px'],
-              ['transition',   'border-color 120ms, box-shadow 120ms'],
+              ['border-color', 'teal[7] → brand via alias'],
+              ['box-shadow',   'teal[7] @ 22% · spread 3px'],
+              ['transition',   'border + shadow 120ms'],
             ]} />
             <ShellTokenCard title="Label (top)" rows={[
-              ['font-size',       'rem(10)  /  rem(9)'],
+              ['font-size',       'rem(10) hero / rem(9) compact'],
               ['font-weight',     '600'],
               ['text-transform',  'uppercase'],
               ['letter-spacing',  '0.04em'],
               ['color',           'gray[6]'],
-              ['line-height',     '1'],
             ]} />
-            <ShellTokenCard title="Icon + value text" rows={[
-              ['icon size',        '18×18px  /  16×16px'],
-              ['icon color',       'gray[6]'],
-              ['value font-size',  'rem(14)  /  rem(12)'],
-              ['value weight',     '600'],
-              ['value color',      'gray[9] (filled)'],
-              ['placeholder',      'gray[5]'],
+            <ShellTokenCard title="Icon + value" rows={[
+              ['icon size',    '18×18px hero / 16×16px compact'],
+              ['icon color',   'gray[6]'],
+              ['value size',   'rem(14) / rem(12)'],
+              ['value weight', '600'],
+              ['filled color', 'gray[9]'],
+              ['placeholder',  'gray[5]'],
             ]} />
           </div>
         </Box>
 
-        {/* Per-atom catalog */}
-        <Box>
-          <DocLabel>Input &amp; control catalog</DocLabel>
+        {/* Atoms */}
+        <Box mb={mobile ? 36 : 52}>
+          <DocLabel>Input &amp; control atoms — compact</DocLabel>
           <div style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : '1fr 1fr', gap: 14, marginTop: 12 }}>
-            {ATOMS.map((a) => (
-              <AtomCard key={a.name} atom={a} mobile={mobile} />
-            ))}
+            {ATOMS.map((a) => <AtomCard key={a.name} atom={a} />)}
+          </div>
+        </Box>
+
+        {/* Molecules */}
+        <Box>
+          <DocLabel>Molecules — dropdown &amp; popover contents</DocLabel>
+          <div style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : '1fr 1fr 1fr', gap: 14, marginTop: 12 }}>
+            {MOLECULES.map((m) => <AtomCard key={m.name} atom={m} />)}
           </div>
         </Box>
 
@@ -741,54 +805,161 @@ function AtomsDoc({ mobile }) {
   );
 }
 
-function FieldPreview({ icon, label, value, compact = false }) {
-  const h = compact ? 48 : 62;
-  const r = compact ? 10 : 12;
-  const p = compact ? '8px 14px' : '0 16px';
-  const gap = compact ? 10 : 12;
-  const is = compact ? 16 : 18;
-  const lfs = compact ? 9 : 10;
-  const vfs = compact ? 12 : 14;
+// ── Field preview (renders exact shell HTML) ──────────────────────────────
+function FieldPreview({ icon, label, value, hero = false }) {
+  const h  = hero ? 62 : 48;
+  const r  = hero ? 12 : 10;
+  const p  = hero ? '0 16px' : '8px 14px';
+  const g  = hero ? 12 : 10;
+  const is = hero ? 18 : 16;
+  const lfs = hero ? 10 : 9;
+  const vfs = hero ? 14 : 12;
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap, padding: p, height: h, background: '#fff',
-      border: compact ? '1px solid transparent' : '1px solid var(--mantine-color-gray-3)', borderRadius: r }}>
-      {icon && <span style={{ display: 'inline-flex', color: 'var(--mantine-color-gray-6)', width: is, height: is, flexShrink: 0 }}>{icon}</span>}
+    <div style={{ display: 'flex', alignItems: 'center', gap: g, padding: p, height: h,
+      background: '#fff', border: hero ? '1px solid var(--mantine-color-gray-3)' : '1px solid transparent',
+      borderRadius: r }}>
+      {icon && <span style={{ display: 'inline-flex', color: 'var(--mantine-color-gray-6)',
+        width: is, height: is, flexShrink: 0 }}>{icon}</span>}
       <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0 }}>
         <span style={{ fontSize: lfs, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em',
           color: 'var(--mantine-color-gray-6)', lineHeight: 1 }}>{label}</span>
-        <span style={{ fontSize: vfs, fontWeight: 600, color: 'var(--mantine-color-gray-9)', marginTop: 2,
-          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{value}</span>
+        <span style={{ fontSize: vfs, fontWeight: 600, color: 'var(--mantine-color-gray-9)',
+          marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{value}</span>
       </div>
     </div>
   );
 }
 
-function AtomCard({ atom, mobile }) {
-  const { name, desc, preview, compactPreview, rows } = atom;
+// ── Molecule previews ─────────────────────────────────────────────────────
+function CalendarMoleculePreview() {
+  const I = window.SearchIcons || {};
+  const START = 10, END = 17;
+  const cells = [null, null, null, null, null, ...Array.from({ length: 31 }, (_, i) => i + 1)];
+  return (
+    <Box style={{ width: '100%', maxWidth: 260, background: '#fff', borderRadius: 10,
+      border: '1px solid var(--mantine-color-gray-2)', padding: '10px 10px 6px' }}>
+      <Group justify="space-between" mb={6}>
+        <ActionIcon variant="subtle" color="gray" size="sm">‹</ActionIcon>
+        <Text size="sm" fw={600}>May 2026</Text>
+        <ActionIcon variant="subtle" color="gray" size="sm">›</ActionIcon>
+      </Group>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: 1 }}>
+        {['Su','Mo','Tu','We','Th','Fr','Sa'].map((d, i) => (
+          <div key={i} style={{ textAlign: 'center', color: '#9aa1a8', fontSize: 10, fontWeight: 600, padding: '2px 0' }}>{d}</div>
+        ))}
+        {cells.slice(0, 35).map((d, i) => {
+          const isSt = d === START, isEn = d === END;
+          const inR = d !== null && d > START && d < END;
+          const isEP = isSt || isEn;
+          return (
+            <div key={i} style={{ position: 'relative', height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              {inR && <span style={{ position: 'absolute', inset: '3px 0', background: 'var(--mantine-color-teal-0)', zIndex: 0 }} />}
+              {isSt && <span style={{ position: 'absolute', top: 3, bottom: 3, right: 0, left: '50%', background: 'var(--mantine-color-teal-0)', zIndex: 0 }} />}
+              {isEn && <span style={{ position: 'absolute', top: 3, bottom: 3, left: 0, right: '50%', background: 'var(--mantine-color-teal-0)', zIndex: 0 }} />}
+              {d !== null && (
+                <span style={{ position: 'relative', zIndex: 1, width: 26, height: 26, borderRadius: '50%', display: 'flex',
+                  alignItems: 'center', justifyContent: 'center', fontSize: 11,
+                  background: isEP ? 'var(--mantine-color-teal-7)' : 'transparent',
+                  color: isEP ? '#fff' : '#1a1a1a', fontWeight: isEP ? 600 : 400 }}>{d}</span>
+              )}
+            </div>
+          );
+        })}
+      </div>
+      <Group justify="flex-end" mt={8} gap={6}>
+        <Button size="xs" variant="subtle" style={{ pointerEvents: 'none' }}>Clear</Button>
+        <Button size="xs" color="teal" style={{ pointerEvents: 'none' }}>Done</Button>
+      </Group>
+    </Box>
+  );
+}
+
+function TravelersMoleculePreview() {
+  return (
+    <Box style={{ width: '100%', maxWidth: 260, background: '#fff', borderRadius: 10,
+      border: '1px solid var(--mantine-color-gray-2)', padding: 16 }}>
+      <Stack gap="sm">
+        {[['Adults', 2, true], ['Children', 0, false], ['Rooms', 1, true]].map(([label, count, atMin]) => (
+          <Group key={label} justify="space-between" wrap="nowrap">
+            <Text size="sm" fw={600}>{label}</Text>
+            <Group gap={6} wrap="nowrap">
+              <ActionIcon variant="default" size="md" radius="xl"
+                style={{ opacity: atMin ? 0.35 : 1, pointerEvents: 'none' }}>−</ActionIcon>
+              <Text size="sm" fw={600} w={20} ta="center">{count}</Text>
+              <ActionIcon variant="default" size="md" radius="xl"
+                style={{ pointerEvents: 'none' }}>+</ActionIcon>
+            </Group>
+          </Group>
+        ))}
+        <Group justify="flex-end">
+          <Button size="xs" color="teal" style={{ pointerEvents: 'none' }}>Done</Button>
+        </Group>
+      </Stack>
+    </Box>
+  );
+}
+
+function TypeaheadMoleculePreview() {
+  const I = window.SearchIcons || {};
+  const TM = window.TYPE_META || {};
+  const groups = [
+    { label: 'Airports', items: [
+      { type: 'airport', name: 'CDG — Paris Charles de Gaulle', sub: 'Paris, France' },
+      { type: 'airport', name: 'ORY — Paris Orly', sub: 'Paris, France' },
+    ]},
+    { label: 'Cities & neighborhoods', items: [
+      { type: 'city', name: 'Paris', sub: 'France' },
+    ]},
+  ];
+  return (
+    <Box style={{ width: '100%', background: '#fff', borderRadius: 10,
+      border: '1px solid var(--mantine-color-gray-2)', maxHeight: 280, overflowY: 'auto' }}>
+      {groups.map((g) => (
+        <Box key={g.label}>
+          <Text style={{ padding: '8px 10px 4px', fontSize: 10, fontWeight: 700, textTransform: 'uppercase',
+            letterSpacing: 0.4, color: 'var(--mantine-color-gray-5)' }}>{g.label}</Text>
+          {g.items.map((item) => {
+            const meta = TM[item.type] || {};
+            return (
+              <div key={item.name} style={{ padding: '8px 10px', display: 'flex', alignItems: 'center', gap: 10 }}>
+                <Box style={{ width: 30, height: 30, borderRadius: 8, background: 'var(--mantine-color-gray-1)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <span style={{ width: 14, height: 14, display: 'inline-flex', color: 'var(--mantine-color-gray-6)' }}>
+                    {meta.icon || I.pin}
+                  </span>
+                </Box>
+                <Box style={{ flex: 1, minWidth: 0 }}>
+                  <Text size="sm" fw={600} truncate>{item.name}</Text>
+                  <Text size="xs" c="dimmed" truncate>{item.sub}</Text>
+                </Box>
+                <Text style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5,
+                  color: 'var(--mantine-color-gray-5)', flexShrink: 0 }}>
+                  {item.type}
+                </Text>
+              </div>
+            );
+          })}
+        </Box>
+      ))}
+    </Box>
+  );
+}
+
+// ── Shared card + token table ─────────────────────────────────────────────
+function AtomCard({ atom }) {
+  const { name, desc, preview, rows } = atom;
   return (
     <Box style={{ background: '#fff', border: '1px solid var(--mantine-color-gray-2)', borderRadius: 12, overflow: 'hidden' }}>
-      {/* Preview row: hero + compact */}
-      <Box style={{ padding: '14px 16px', borderBottom: '1px solid var(--mantine-color-gray-1)', background: '#fafaf7' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: compactPreview ? '1fr 1fr' : '1fr', gap: 10 }}>
-          <Stack gap={4}>
-            {compactPreview && <Text style={{ fontSize: 9, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, color: 'var(--mantine-color-gray-4)' }}>Hero</Text>}
-            {preview}
-          </Stack>
-          {compactPreview && (
-            <Stack gap={4}>
-              <Text style={{ fontSize: 9, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, color: 'var(--mantine-color-gray-4)' }}>Compact</Text>
-              {compactPreview}
-            </Stack>
-          )}
-        </div>
+      <Box style={{ padding: '14px 16px 12px', background: '#fafaf7',
+        borderBottom: '1px solid var(--mantine-color-gray-1)' }}>
+        {preview}
       </Box>
-      {/* Spec */}
       <Box style={{ padding: '12px 16px' }}>
         <Text fw={700} size="sm" mb={3}>{name}</Text>
         <Text size="xs" c="dimmed" mb={10} style={{ lineHeight: 1.5 }}>{desc}</Text>
         <div style={{ borderTop: '1px solid var(--mantine-color-gray-1)', paddingTop: 8 }}>
           {rows.map(([prop, val]) => (
-            <div key={prop} style={{ display: 'flex', justifyContent: 'space-between', gap: 8, padding: '2px 0' }}>
+            <div key={prop} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8, padding: '2px 0' }}>
               <span style={{ fontSize: 11, color: 'var(--mantine-color-gray-5)', flexShrink: 0 }}>{prop}</span>
               <span style={{ fontSize: 11, fontFamily: 'ui-monospace, monospace', color: 'var(--mantine-color-gray-8)', textAlign: 'right' }}>{val}</span>
             </div>
@@ -806,8 +977,10 @@ function ShellTokenCard({ title, rows }) {
       <Stack gap={5}>
         {rows.map(([prop, val]) => (
           <Box key={prop}>
-            <Text style={{ fontSize: 9, textTransform: 'uppercase', letterSpacing: 0.3, color: 'var(--mantine-color-gray-4)', fontWeight: 600, lineHeight: 1 }}>{prop}</Text>
-            <Text style={{ fontSize: 11, fontFamily: 'ui-monospace, monospace', color: 'var(--mantine-color-gray-8)', lineHeight: 1.4 }}>{val}</Text>
+            <Text style={{ fontSize: 9, textTransform: 'uppercase', letterSpacing: 0.3,
+              color: 'var(--mantine-color-gray-4)', fontWeight: 600, lineHeight: 1 }}>{prop}</Text>
+            <Text style={{ fontSize: 11, fontFamily: 'ui-monospace, monospace',
+              color: 'var(--mantine-color-gray-8)', lineHeight: 1.4 }}>{val}</Text>
           </Box>
         ))}
       </Stack>
