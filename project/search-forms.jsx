@@ -527,61 +527,138 @@ function MobileFieldRow({ icon, label, value, placeholder, onClick }) {
 window.MobileFieldRow = MobileFieldRow;
 
 function MobileLocationField({ label, value, onChange, icon, placeholder, product }) {
-  const [open, setOpen] = React.useState(false);
   const [query, setQuery] = React.useState(value || '');
+  const [focused, setFocused] = React.useState(false);
   const allPlaces = (window.PLACES && window.PLACES[product]) || [];
-  const filtered = query ? allPlaces.filter(p => p.toLowerCase().includes(query.toLowerCase())) : allPlaces;
-  const select = (v) => { onChange(v); setQuery(v); setOpen(false); };
+  const filtered = query ? allPlaces.filter(p => p.toLowerCase().includes(query.toLowerCase())) : allPlaces.slice(0, 6);
+  const select = (v) => { onChange(v); setQuery(v); setFocused(false); };
   return (
-    <>
-      <MobileFieldRow icon={icon} label={label} value={value} placeholder={placeholder}
-        onClick={() => { setQuery(value || ''); setOpen(true); }} />
-      <MobileBottomSheet open={open} onClose={() => setOpen(false)} title={label} doneLabel="Confirm">
-        <input type="text" value={query} onChange={e => setQuery(e.target.value)} autoFocus
-          placeholder={placeholder || 'Search...'}
-          style={{ width:'100%', border:'1px solid #e5e7eb', borderRadius:10, padding:'12px 16px',
-            fontSize:16, outline:'none', fontFamily:'inherit', color:'#111', background:'#f9fafb' }} />
-        <Stack gap={0} mt="sm">
-          {filtered.slice(0, 8).map((s, i) => (
-            <UnstyledButton key={s} onClick={() => select(s)}
-              style={{ padding:'14px 4px', borderBottom: i < Math.min(filtered.length,8)-1 ? '1px solid #f3f4f6' : 'none',
-                fontSize:15, textAlign:'left', color:'#111827', fontFamily:'inherit' }}>{s}</UnstyledButton>
+    <div style={{ position:'relative' }}>
+      <div style={{ border: `1px solid ${focused ? '#4263EB' : '#e5e7eb'}`, borderRadius:12, padding:'14px 16px',
+        background:'#fff', display:'flex', alignItems:'center', gap:10, minHeight:68 }}>
+        {icon && <span style={{ width:20, height:20, color:'#9ca3af', flexShrink:0, display:'inline-flex', alignItems:'center' }}>{icon}</span>}
+        <div style={{ flex:1, minWidth:0 }}>
+          <div style={{ fontSize:11, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'0.06em', lineHeight:1 }}>{label}</div>
+          <input type="text" value={query}
+            onChange={e => { setQuery(e.target.value); onChange(e.target.value); }}
+            onFocus={() => setFocused(true)}
+            onBlur={() => setTimeout(() => setFocused(false), 180)}
+            placeholder={placeholder || 'Search...'}
+            style={{ border:'none', outline:'none', background:'transparent', fontSize:16, fontWeight:600,
+              color:'#111827', padding:0, marginTop:3, width:'100%', fontFamily:'inherit' }} />
+        </div>
+      </div>
+      {focused && filtered.length > 0 && (
+        <div style={{ position:'absolute', top:'calc(100% + 4px)', left:0, right:0, zIndex:200,
+          background:'#fff', border:'1px solid #e5e7eb', borderRadius:12, overflow:'hidden',
+          boxShadow:'0 4px 20px rgba(0,0,0,0.12)' }}>
+          {filtered.slice(0, 6).map((s, i) => (
+            <div key={s} onMouseDown={() => select(s)} onClick={() => select(s)}
+              style={{ padding:'14px 16px', borderBottom: i < Math.min(filtered.length,6)-1 ? '1px solid #f3f4f6':'none',
+                fontSize:15, cursor:'pointer', color:'#111827' }}>{s}</div>
           ))}
           {filtered.length === 0 && query && (
-            <UnstyledButton onClick={() => select(query)}
-              style={{ padding:'14px 4px', fontSize:15, color:'#4263EB', fontFamily:'inherit' }}>Use "{query}"</UnstyledButton>
+            <div onMouseDown={() => select(query)} onClick={() => select(query)}
+              style={{ padding:'14px 16px', fontSize:15, cursor:'pointer', color:'#4263EB' }}>Use "{query}"</div>
           )}
-        </Stack>
-      </MobileBottomSheet>
-    </>
+        </div>
+      )}
+    </div>
   );
 }
 window.MobileLocationField = MobileLocationField;
+
+// Mini calendar for the date bottom sheet
+function MiniCalendar({ start, end, onDateClick }) {
+  const today = new Date();
+  const [viewYear, setViewYear] = React.useState(today.getFullYear());
+  const [viewMonth, setViewMonth] = React.useState(today.getMonth());
+  const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const DOW = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
+  const parseD = (s) => { if (!s) return null; const d = new Date(s+'T00:00:00'); return isNaN(d)?null:d; };
+  const startD = parseD(start); const endD = parseD(end);
+  const firstDow = new Date(viewYear, viewMonth, 1).getDay();
+  const daysInMo = new Date(viewYear, viewMonth+1, 0).getDate();
+  const fmt = (y,m,d) => `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+  const prevMo = () => { if(viewMonth===0){setViewYear(y=>y-1);setViewMonth(11);}else setViewMonth(m=>m-1); };
+  const nextMo = () => { if(viewMonth===11){setViewYear(y=>y+1);setViewMonth(0);}else setViewMonth(m=>m+1); };
+  const cells = [];
+  for(let i=0;i<firstDow;i++) cells.push(null);
+  for(let d=1;d<=daysInMo;d++) cells.push(d);
+  return (
+    <div>
+      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:12 }}>
+        <UnstyledButton onClick={prevMo} style={{ padding:'8px 12px', fontSize:22, color:'#374151' }}>‹</UnstyledButton>
+        <Text fw={600} size="md">{MONTHS[viewMonth]} {viewYear}</Text>
+        <UnstyledButton onClick={nextMo} style={{ padding:'8px 12px', fontSize:22, color:'#374151' }}>›</UnstyledButton>
+      </div>
+      <div style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', marginBottom:4 }}>
+        {DOW.map(d => <div key={d} style={{ textAlign:'center', fontSize:10, fontWeight:700, color:'#9ca3af', padding:'4px 0' }}>{d}</div>)}
+      </div>
+      <div style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', rowGap:4 }}>
+        {cells.map((d, i) => {
+          if (!d) return <div key={`e${i}`} />;
+          const dt = new Date(viewYear, viewMonth, d);
+          const isSt = startD && dt.getTime()===startD.getTime();
+          const isEn = endD && dt.getTime()===endD.getTime();
+          const inRng = startD && endD && dt > startD && dt < endD;
+          const isToday = today.getDate()===d && today.getMonth()===viewMonth && today.getFullYear()===viewYear;
+          return (
+            <div key={d} onClick={() => onDateClick(fmt(viewYear,viewMonth,d))}
+              style={{ position:'relative', display:'flex', alignItems:'center', justifyContent:'center',
+                cursor:'pointer', height:40 }}>
+              {inRng && <div style={{ position:'absolute', inset:'0 0 0 0', background:'#f3f4f6', zIndex:0 }} />}
+              {(isSt||isEn) && <div style={{ position:'absolute', inset:'4px', borderRadius:'50%', background:'#111827', zIndex:1 }} />}
+              <span style={{ position:'relative', zIndex:2, fontSize:15, fontWeight: (isSt||isEn||isToday)?700:400,
+                color: (isSt||isEn)?'#fff': isToday?'#4263EB':'#111827' }}>{d}</span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
 function MobileDateField({ label, value, onChange, icon }) {
   const [open, setOpen] = React.useState(false);
   const [start, setStart] = React.useState(value?.start || '');
   const [end, setEnd] = React.useState(value?.end || '');
-  const display = start && end ? `${start} – ${end}` : start || '';
+  const [picking, setPicking] = React.useState('start');
+  const fmtDisplay = (s) => {
+    if (!s) return '';
+    const d = new Date(s+'T00:00:00');
+    return isNaN(d) ? s : d.toLocaleDateString('en-US', { month:'short', day:'numeric' });
+  };
+  const display = start && end ? `${fmtDisplay(start)} – ${fmtDisplay(end)}` : fmtDisplay(start) || '';
+  const handleDayClick = (dateStr) => {
+    if (picking === 'start' || !start || dateStr < start) {
+      setStart(dateStr); setEnd(''); setPicking('end');
+    } else if (dateStr === start) {
+      setStart(''); setEnd(''); setPicking('start');
+    } else {
+      setEnd(dateStr); setPicking('start');
+    }
+  };
   const confirm = () => { onChange({ start, end }); setOpen(false); };
   return (
     <>
-      <MobileFieldRow icon={icon} label={label} value={display} placeholder="Add dates" onClick={() => { setStart(value?.start||''); setEnd(value?.end||''); setOpen(true); }} />
-      <MobileBottomSheet open={open} onClose={confirm} title={label} doneLabel="Confirm dates">
-        <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
-          <div>
-            <div style={{ fontSize:12, fontWeight:600, color:'#6b7280', marginBottom:4 }}>Start</div>
-            <input type="date" value={start} onChange={e => setStart(e.target.value)}
-              style={{ width:'100%', border:'1px solid #e5e7eb', borderRadius:10, padding:'12px 16px',
-                fontSize:16, fontFamily:'inherit', background:'#f9fafb', outline:'none', color:'#111' }} />
-          </div>
-          <div>
-            <div style={{ fontSize:12, fontWeight:600, color:'#6b7280', marginBottom:4 }}>End</div>
-            <input type="date" value={end} onChange={e => setEnd(e.target.value)}
-              style={{ width:'100%', border:'1px solid #e5e7eb', borderRadius:10, padding:'12px 16px',
-                fontSize:16, fontFamily:'inherit', background:'#f9fafb', outline:'none', color:'#111' }} />
-          </div>
+      <MobileFieldRow icon={icon} label={label} value={display} placeholder="Add dates"
+        onClick={() => { setStart(value?.start||''); setEnd(value?.end||''); setPicking('start'); setOpen(true); }} />
+      <MobileBottomSheet open={open} onClose={confirm} title={null} doneLabel="Done">
+        <div style={{ display:'flex', gap:10, marginBottom:16 }}>
+          {[['start','Check in'], ['end','Check out']].map(([k, lbl]) => {
+            const val = k==='start' ? start : end;
+            return (
+              <div key={k} onClick={() => setPicking(k)}
+                style={{ flex:1, border: picking===k ? '2px solid #111827' : '1px solid #e5e7eb',
+                  borderRadius:12, padding:'10px 14px', cursor:'pointer' }}>
+                <div style={{ fontSize:11, fontWeight:600, color:'#6b7280', marginBottom:2 }}>{lbl}</div>
+                <div style={{ fontSize:16, fontWeight:600, color: val?'#111827':'#d1d5db' }}>{fmtDisplay(val)||'Add date'}</div>
+              </div>
+            );
+          })}
         </div>
+        <MiniCalendar start={start} end={end} onDateClick={handleDayClick} />
       </MobileBottomSheet>
     </>
   );
