@@ -451,13 +451,58 @@ function BenefitsField({ value, onChange, flex = 0.9, minWidth = 160 }) {
 }
 window.BenefitsField = BenefitsField;
 
+// Mobile full-screen search modal — opens when compact pill is tapped.
+function MobileSearchModal({ open, onClose, onSearch, children, title = 'Edit search' }) {
+  if (!open) return null;
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 9000, background: 'var(--mantine-color-gray-0)',
+      display: 'flex', flexDirection: 'column', overscrollBehavior: 'contain' }}>
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '0 16px',
+        height: 56, background: '#fff', borderBottom: '1px solid var(--mantine-color-gray-2)', flexShrink: 0 }}>
+        <UnstyledButton onClick={onClose}
+          style={{ width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center',
+            borderRadius: 8, background: 'var(--mantine-color-gray-1)' }}>
+          <span style={{ fontSize: 18, lineHeight: 1, color: 'var(--mantine-color-gray-7)' }}>←</span>
+        </UnstyledButton>
+        <Text fw={700} size="sm" style={{ flex: 1 }}>{title}</Text>
+      </div>
+      {/* Scrollable fields */}
+      <div style={{ flex: 1, overflowY: 'auto', padding: '16px 16px 8px' }}>
+        <Stack gap={10}>{children}</Stack>
+      </div>
+      {/* Search CTA */}
+      <div style={{ padding: '12px 16px 20px', background: '#fff',
+        borderTop: '1px solid var(--mantine-color-gray-2)', flexShrink: 0 }}>
+        <Button fullWidth size="lg" color="teal"
+          leftSection={<span style={{ display: 'inline-flex', width: 18, height: 18 }}>{I.search}</span>}
+          onClick={() => { onSearch?.(); onClose(); }}
+          style={{ height: 52, fontWeight: 600, borderRadius: 12 }}>
+          Search
+        </Button>
+      </div>
+    </div>
+  );
+}
+window.MobileSearchModal = MobileSearchModal;
+
 // Compact form shell — single row, dense, dark-pill backdrop, used in
 // the results-page nav. Same field components, smaller padding.
 // On mobile, renders as a single full-width "search summary" pill that
-// expands to a sheet on click — see CompactMobilePill below.
-function CompactFormShell({ children, onSearch, mobile, summary }) {
+// opens a full-screen modal on click.
+function CompactFormShell({ children, onSearch, mobile, summary, mobileModal }) {
+  const [modalOpen, setModalOpen] = React.useState(false);
   if (mobile) {
-    return <window.CompactMobilePill summary={summary} onClick={onSearch || (() => {})} />;
+    return (
+      <>
+        <window.CompactMobilePill summary={summary} onClick={() => mobileModal ? setModalOpen(true) : onSearch?.()} />
+        {mobileModal && (
+          <MobileSearchModal open={modalOpen} onClose={() => setModalOpen(false)} onSearch={onSearch}>
+            {mobileModal}
+          </MobileSearchModal>
+        )}
+      </>
+    );
   }
   return (
     <div

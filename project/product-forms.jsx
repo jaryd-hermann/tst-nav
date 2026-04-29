@@ -1,6 +1,6 @@
 // One form per product. All composed from window.LocationField etc.
 (function() {
-const { Group, Stack, SegmentedControl, Box, Text, Switch, ActionIcon } = window.mantine;
+const { Group, Stack, SegmentedControl, Box, Text, Switch, ActionIcon, UnstyledButton, Button } = window.mantine;
 const I = window.SearchIcons;
 const SF = window.SelectField;
 
@@ -34,9 +34,92 @@ function HotelSearch({ mobile, onSearch }) {
   );
 }
 
+const CABIN_OPTIONS = [
+  { value: 'economy', label: 'Economy' },
+  { value: 'premium', label: 'Premium economy' },
+  { value: 'business', label: 'Business' },
+  { value: 'first', label: 'First' },
+];
+const TRIP_TYPE_OPTIONS = [
+  { value: 'roundtrip', label: 'Round trip' },
+  { value: 'oneway', label: 'One way' },
+  { value: 'multi', label: 'Multi-city' },
+];
+
+// ── Multi-city layout ────────────────────────────────────────────────────
+function MultiCityFlightForm({ tripType, setTripType, segments, setSegments, travelers, setTravelers, cabin, setCabin, mobile, onSearch }) {
+  const addSegment = () => {
+    if (segments.length < 5) setSegments([...segments, { from: '', to: '', date: { start: '', end: '' } }]);
+  };
+  const removeSegment = (i) => setSegments(segments.filter((_, idx) => idx !== i));
+  const updateSeg = (i, key, val) => setSegments(segments.map((s, idx) => idx === i ? { ...s, [key]: val } : s));
+
+  return (
+    <Box style={{ display: 'flex', flexDirection: 'column', gap: 8,
+      background: 'var(--wf-search-bar-bg, #E6EFFB)', padding: 8, borderRadius: 16, width: '100%' }}>
+
+      {/* Row 1 — trip controls */}
+      <Group gap={8} wrap={mobile ? 'wrap' : 'nowrap'}>
+        <SF label="Trip type" value={tripType} onChange={setTripType} icon={I.swap}
+          options={TRIP_TYPE_OPTIONS} flex={1} minWidth={150} />
+        <window.TravelersField label="Travelers" value={travelers} onChange={setTravelers} options={[]} flex={1} />
+        <SF label="Cabin" value={cabin} onChange={setCabin} icon={I.plane}
+          options={CABIN_OPTIONS} flex={1} minWidth={150} />
+      </Group>
+
+      {/* Divider */}
+      <div style={{ height: 1, background: 'rgba(0,0,0,0.07)', margin: '0 2px' }} />
+
+      {/* Destination rows */}
+      <Stack gap={8}>
+        {segments.map((seg, i) => (
+          <Group key={i} gap={8} wrap={mobile ? 'wrap' : 'nowrap'} align="stretch">
+            <Box style={{ flex: '0 0 auto', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              width: 22, color: 'var(--mantine-color-gray-5)', fontSize: 11, fontWeight: 700, flexShrink: 0 }}>
+              {i + 1}
+            </Box>
+            <window.LocationField label="From" value={seg.from}
+              onChange={(v) => updateSeg(i, 'from', v)} icon={I.plane} flex={1.2} product="flights" placeholder="City or airport" />
+            <window.LocationField label="To" value={seg.to}
+              onChange={(v) => updateSeg(i, 'to', v)} icon={I.plane} flex={1.2} product="flights" placeholder="City or airport" />
+            <window.DateRangeField label="Departure date" value={seg.date}
+              onChange={(v) => updateSeg(i, 'date', { start: v.start, end: '' })} icon={I.cal} flex={1} />
+            {i >= 2 && (
+              <ActionIcon variant="subtle" color="gray" size="lg" onClick={() => removeSegment(i)}
+                style={{ alignSelf: 'center', flexShrink: 0 }} aria-label="Remove leg">
+                <span style={{ fontSize: 18, lineHeight: 1 }}>×</span>
+              </ActionIcon>
+            )}
+          </Group>
+        ))}
+      </Stack>
+
+      {/* Footer */}
+      <Group justify="space-between" align="center" style={{ paddingTop: 2 }}>
+        {segments.length < 5 ? (
+          <UnstyledButton onClick={addSegment}
+            style={{ fontSize: 13, fontWeight: 600, color: 'var(--mantine-color-teal-7)', padding: '4px 8px' }}>
+            + Add destination
+          </UnstyledButton>
+        ) : <div />}
+        <Button size="lg" color="teal"
+          leftSection={<span style={{ display: 'inline-flex', width: 18, height: 18 }}>{I.search}</span>}
+          onClick={onSearch || (() => {})}
+          style={{ height: 62, minWidth: 160, paddingInline: 22, fontWeight: 600, borderRadius: 12, flexShrink: 0 }}>
+          Search flights
+        </Button>
+      </Group>
+    </Box>
+  );
+}
+
 // FLIGHTS
 function FlightSearch({ mobile, onSearch }) {
   const [tripType, setTripType] = React.useState('roundtrip');
+  const [segments, setSegments] = React.useState([
+    { from: 'SFO — San Francisco', to: 'NRT — Tokyo Narita', date: { start: 'Jun 04, 2026', end: '' } },
+    { from: '', to: '', date: { start: '', end: '' } },
+  ]);
   const [from, setFrom] = React.useState('SFO — San Francisco');
   const [to, setTo] = React.useState('NRT — Tokyo Narita');
   const [dates, setDates] = React.useState({ start: 'Jun 04, 2026', end: 'Jun 14, 2026' });
@@ -44,53 +127,37 @@ function FlightSearch({ mobile, onSearch }) {
   const [cabin, setCabin] = React.useState('economy');
   const swap = () => { const a = from; setFrom(to); setTo(a); };
 
+  if (tripType === 'multi') {
+    return (
+      <MultiCityFlightForm
+        tripType={tripType} setTripType={setTripType}
+        segments={segments} setSegments={setSegments}
+        travelers={travelers} setTravelers={setTravelers}
+        cabin={cabin} setCabin={setCabin}
+        mobile={mobile} onSearch={onSearch}
+      />
+    );
+  }
+
   return (
     <window.SearchFormShell mobile={mobile} onSearch={onSearch || (() => {})}>
       <Box style={{ flex: '1 1 360px', position: 'relative', display: 'flex', gap: 8, flexDirection: mobile ? 'column' : 'row', minWidth: 0 }}>
         <window.LocationField label="From" value={from} onChange={setFrom} placeholder="City or airport" icon={I.plane} flex={1} product="flights" />
         {!mobile && (
-          <ActionIcon
-            onClick={swap}
-            variant="default"
-            radius="xl"
-            size="lg"
+          <ActionIcon onClick={swap} variant="default" radius="xl" size="lg"
             style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%, -50%)', zIndex: 2, background: '#fff', border: '1px solid var(--mantine-color-gray-3)' }}
-            aria-label="Swap"
-          >
+            aria-label="Swap">
             <span style={{ width: 16, height: 16, display: 'inline-flex', color: 'var(--mantine-color-gray-7)' }}>{I.swap}</span>
           </ActionIcon>
         )}
         <window.LocationField label="To" value={to} onChange={setTo} placeholder="City or airport" icon={I.plane} flex={1} product="flights" />
       </Box>
-      <SF
-        label="Trip type"
-        value={tripType}
-        onChange={setTripType}
-        icon={I.swap}
-        options={[
-          { value: 'roundtrip', label: 'Round trip' },
-          { value: 'oneway', label: 'One way' },
-          { value: 'multi', label: 'Multi-city' },
-        ]}
-        flex={0.9}
-        minWidth={150}
-      />
+      <SF label="Trip type" value={tripType} onChange={setTripType} icon={I.swap}
+        options={TRIP_TYPE_OPTIONS} flex={0.9} minWidth={150} />
       <window.DateRangeField label={tripType === 'oneway' ? 'Depart' : 'Depart — Return'} value={dates} onChange={setDates} icon={I.cal} flex={1.4} />
       <window.TravelersField label="Travelers" value={travelers} onChange={setTravelers} options={[]} flex={1} />
-      <SF
-        label="Cabin"
-        value={cabin}
-        onChange={setCabin}
-        icon={I.plane}
-        options={[
-          { value: 'economy', label: 'Economy' },
-          { value: 'premium', label: 'Premium economy' },
-          { value: 'business', label: 'Business' },
-          { value: 'first', label: 'First' },
-        ]}
-        flex={0.9}
-        minWidth={150}
-      />
+      <SF label="Cabin" value={cabin} onChange={setCabin} icon={I.plane}
+        options={CABIN_OPTIONS} flex={0.9} minWidth={150} />
     </window.SearchFormShell>
   );
 }
@@ -263,9 +330,9 @@ window.ProductSearch = {
 // ─── COMPACT (results-page) forms ────────────────────────────────────────
 // One-line dense versions for use inside the dark nav strip.
 
-function CompactBase({ fields, onSearch, mobile, summary }) {
+function CompactBase({ fields, onSearch, mobile, summary, mobileModal }) {
   return (
-    <window.CompactFormShell mobile={mobile} onSearch={onSearch} summary={summary}>
+    <window.CompactFormShell mobile={mobile} onSearch={onSearch} summary={summary} mobileModal={mobileModal}>
       {fields}
     </window.CompactFormShell>
   );
@@ -379,11 +446,18 @@ function HotelCompact({ mobile, onSearch }) {
   const [travelers, setTravelers] = React.useState({ adults: 2, children: 0, rooms: 1 });
   const summary = { main: where, sub: `${dates.start} – ${dates.end} · ${travelers.rooms} room, ${travelers.adults} adults` };
   return (
-    <CompactBase mobile={mobile} onSearch={onSearch} summary={summary} fields={<>
-      <CompactLocation label="Where" value={where} onChange={setWhere} icon={I.pin} flex={1.4} product="hotels" />
-      <CompactDate label="When" value={dates} onChange={setDates} icon={I.cal} flex={1.2} />
-      <CompactTravelers label="Travelers" value={travelers} onChange={setTravelers} options={['rooms']} flex={1} />
-    </>} />
+    <CompactBase mobile={mobile} onSearch={onSearch} summary={summary}
+      mobileModal={<>
+        <window.LocationField label="Where to" value={where} onChange={setWhere} placeholder="City, hotel, or landmark" icon={I.pin} flex={1} product="hotels" />
+        <window.DateRangeField label="When" value={dates} onChange={setDates} icon={I.cal} flex={1} />
+        <window.TravelersField label="Travelers" value={travelers} onChange={setTravelers} options={['rooms']} flex={1} />
+      </>}
+      fields={<>
+        <CompactLocation label="Where" value={where} onChange={setWhere} icon={I.pin} flex={1.4} product="hotels" />
+        <CompactDate label="When" value={dates} onChange={setDates} icon={I.cal} flex={1.2} />
+        <CompactTravelers label="Travelers" value={travelers} onChange={setTravelers} options={['rooms']} flex={1} />
+      </>}
+    />
   );
 }
 function FlightCompact({ mobile, onSearch }) {
@@ -397,14 +471,24 @@ function FlightCompact({ mobile, onSearch }) {
   const cabinLabel = { economy: 'Economy', premium: 'Premium', business: 'Business', first: 'First' }[cabin];
   const summary = { main: `${from} → ${to}`, sub: `${tripLabel} · ${dates.start} – ${dates.end} · ${travelers.adults} adult · ${cabinLabel}` };
   return (
-    <CompactBase mobile={mobile} onSearch={onSearch} summary={summary} fields={<>
-      <CompactLocation label="From" value={from} onChange={setFrom} icon={I.plane} flex={0.9} minWidth={110} product="flights" />
-      <CompactLocation label="To" value={to} onChange={setTo} icon={I.plane} flex={0.9} minWidth={110} product="flights" />
-      <CompactSelect label="Trip type" value={tripType} onChange={setTripType} icon={I.swap} options={[{value:'roundtrip',label:'Round trip'},{value:'oneway',label:'One way'},{value:'multi',label:'Multi-city'}]} flex={0.8} minWidth={140} />
-      <CompactDate label="Dates" value={dates} onChange={setDates} icon={I.cal} flex={1.1} />
-      <CompactTravelers label="Travelers" value={travelers} onChange={setTravelers} flex={0.9} />
-      <CompactSelect label="Cabin" value={cabin} onChange={setCabin} icon={I.plane} options={[{value:'economy',label:'Economy'},{value:'premium',label:'Premium'},{value:'business',label:'Business'},{value:'first',label:'First'}]} flex={0.8} minWidth={130} />
-    </>} />
+    <CompactBase mobile={mobile} onSearch={onSearch} summary={summary}
+      mobileModal={<>
+        <SF label="Trip type" value={tripType} onChange={setTripType} icon={I.swap} options={TRIP_TYPE_OPTIONS} flex={1} minWidth={150} />
+        <window.LocationField label="From" value={from} onChange={setFrom} placeholder="City or airport" icon={I.plane} flex={1} product="flights" />
+        <window.LocationField label="To" value={to} onChange={setTo} placeholder="City or airport" icon={I.plane} flex={1} product="flights" />
+        <window.DateRangeField label={tripType === 'oneway' ? 'Depart' : 'Depart — Return'} value={dates} onChange={setDates} icon={I.cal} flex={1} />
+        <window.TravelersField label="Travelers" value={travelers} onChange={setTravelers} options={[]} flex={1} />
+        <SF label="Cabin" value={cabin} onChange={setCabin} icon={I.plane} options={CABIN_OPTIONS} flex={1} minWidth={150} />
+      </>}
+      fields={<>
+        <CompactLocation label="From" value={from} onChange={setFrom} icon={I.plane} flex={0.9} minWidth={110} product="flights" />
+        <CompactLocation label="To" value={to} onChange={setTo} icon={I.plane} flex={0.9} minWidth={110} product="flights" />
+        <CompactSelect label="Trip type" value={tripType} onChange={setTripType} icon={I.swap} options={[{value:'roundtrip',label:'Round trip'},{value:'oneway',label:'One way'},{value:'multi',label:'Multi-city'}]} flex={0.8} minWidth={140} />
+        <CompactDate label="Dates" value={dates} onChange={setDates} icon={I.cal} flex={1.1} />
+        <CompactTravelers label="Travelers" value={travelers} onChange={setTravelers} flex={0.9} />
+        <CompactSelect label="Cabin" value={cabin} onChange={setCabin} icon={I.plane} options={[{value:'economy',label:'Economy'},{value:'premium',label:'Premium'},{value:'business',label:'Business'},{value:'first',label:'First'}]} flex={0.8} minWidth={130} />
+      </>}
+    />
   );
 }
 function CarCompact({ mobile, onSearch }) {
@@ -414,27 +498,48 @@ function CarCompact({ mobile, onSearch }) {
   const [benefits, setBenefits] = React.useState('none');
   const summary = { main: pickup, sub: `${dates.start} – ${dates.end} · ${returnLoc === 'same' ? 'Same drop-off' : 'Different drop-off'}` };
   return (
-    <CompactBase mobile={mobile} onSearch={onSearch} summary={summary} fields={<>
-      <CompactLocation label="Pickup" value={pickup} onChange={setPickup} icon={I.car} flex={1.2} product="cars" />
-      <CompactSelect label="Drop-off" value={returnLoc} onChange={setReturnLoc} icon={I.car} options={[{value:'same',label:'Same location'},{value:'diff',label:'Different location'}]} flex={0.9} minWidth={150} />
-      <window.CarDateTimeField label="Pickup – Drop-off" value={dates} onChange={setDates} icon={I.cal} flex={1.3} minWidth={220} compact />
-      <CompactSelect label="Benefits" value={benefits} onChange={setBenefits} icon={I.bolt} options={[{value:'none',label:'No benefits'},{value:'promo',label:'Hertz promo code'},{value:'rewards',label:'Hertz rewards #'},{value:'both',label:'Promo + rewards'}]} flex={0.9} minWidth={150} />
-    </>} />
+    <CompactBase mobile={mobile} onSearch={onSearch} summary={summary}
+      mobileModal={<>
+        <window.LocationField label="Pickup" value={pickup} onChange={setPickup} placeholder="Airport or city" icon={I.car} flex={1} product="cars" />
+        <SF label="Drop-off" value={returnLoc} onChange={setReturnLoc} icon={I.car}
+          options={[{value:'same',label:'Same location'},{value:'diff',label:'Different location'}]} flex={1} minWidth={160} />
+        <window.CarDateTimeField label="Pickup — Drop-off" value={dates} onChange={setDates} icon={I.cal} flex={1} minWidth={260} />
+        <window.BenefitsField value={benefits} onChange={setBenefits} flex={1} />
+      </>}
+      fields={<>
+        <CompactLocation label="Pickup" value={pickup} onChange={setPickup} icon={I.car} flex={1.2} product="cars" />
+        <CompactSelect label="Drop-off" value={returnLoc} onChange={setReturnLoc} icon={I.car} options={[{value:'same',label:'Same location'},{value:'diff',label:'Different location'}]} flex={0.9} minWidth={150} />
+        <window.CarDateTimeField label="Pickup – Drop-off" value={dates} onChange={setDates} icon={I.cal} flex={1.3} minWidth={220} compact />
+        <CompactSelect label="Benefits" value={benefits} onChange={setBenefits} icon={I.bolt} options={[{value:'none',label:'No benefits'},{value:'promo',label:'Hertz promo code'},{value:'rewards',label:'Hertz rewards #'},{value:'both',label:'Promo + rewards'}]} flex={0.9} minWidth={150} />
+      </>}
+    />
   );
 }
 function CruiseCompact({ mobile, onSearch }) {
   const [dest, setDest] = React.useState('Caribbean');
+  const [port, setPort] = React.useState('Miami, FL');
   const [duration, setDuration] = React.useState('7-9');
   const [window_, setWindow] = React.useState({ start: 'Jun 01', end: 'Jun 30' });
   const [travelers, setTravelers] = React.useState({ adults: 2, children: 0 });
   const summary = { main: dest, sub: `${window_.start} – ${window_.end} · ${duration} nights · ${travelers.adults} adults` };
   return (
-    <CompactBase mobile={mobile} onSearch={onSearch} summary={summary} fields={<>
-      <CompactLocation label="Destination" value={dest} onChange={setDest} icon={I.pin} flex={1.2} product="cruises" />
-      <CompactSelect label="Duration" value={duration} onChange={setDuration} icon={I.cal} options={[{value:'1-4',label:'1–4 nights'},{value:'5-6',label:'5–6 nights'},{value:'7-9',label:'7–9 nights'},{value:'10+',label:'10+ nights'}]} flex={1} />
-      <CompactDate label="Departing between" value={window_} onChange={setWindow} icon={I.cal} flex={1.2} minWidth={170} />
-      <CompactTravelers label="Guests" value={travelers} onChange={setTravelers} flex={1} />
-    </>} />
+    <CompactBase mobile={mobile} onSearch={onSearch} summary={summary}
+      mobileModal={<>
+        <window.LocationField label="Destination" value={dest} onChange={setDest} placeholder="Where to sail" icon={I.pin} flex={1} product="cruises" />
+        <window.LocationField label="Departure port" value={port} onChange={setPort} placeholder="Any port" icon={I.pin} flex={1} product="cruises" />
+        <SF label="Duration" value={duration} onChange={setDuration} icon={I.cal}
+          options={[{value:'1-4',label:'1 – 4 nights'},{value:'5-6',label:'5 – 6 nights'},{value:'7-9',label:'7 – 9 nights'},{value:'10+',label:'10+ nights'}]}
+          flex={1} minWidth={170} />
+        <window.DateRangeField label="Departing between" value={window_} onChange={setWindow} icon={I.cal} flex={1} />
+        <window.TravelersField label="Guests" value={travelers} onChange={setTravelers} options={[]} flex={1} />
+      </>}
+      fields={<>
+        <CompactLocation label="Destination" value={dest} onChange={setDest} icon={I.pin} flex={1.2} product="cruises" />
+        <CompactSelect label="Duration" value={duration} onChange={setDuration} icon={I.cal} options={[{value:'1-4',label:'1–4 nights'},{value:'5-6',label:'5–6 nights'},{value:'7-9',label:'7–9 nights'},{value:'10+',label:'10+ nights'}]} flex={1} />
+        <CompactDate label="Departing between" value={window_} onChange={setWindow} icon={I.cal} flex={1.2} minWidth={170} />
+        <CompactTravelers label="Guests" value={travelers} onChange={setTravelers} flex={1} />
+      </>}
+    />
   );
 }
 function TourCompact({ mobile, onSearch }) {
@@ -445,12 +550,22 @@ function TourCompact({ mobile, onSearch }) {
   const lenLabel = { any:'Any length', short:'3–6 days', mid:'7–10 days', long:'11+ days' }[duration];
   const summary = { main: dest, sub: `${dates.start} – ${dates.end} · ${lenLabel} · ${travelers.adults} adults` };
   return (
-    <CompactBase mobile={mobile} onSearch={onSearch} summary={summary} fields={<>
-      <CompactLocation label="Destination" value={dest} onChange={setDest} icon={I.pin} flex={1.2} product="tours" />
-      <CompactDate label="Departure window" value={dates} onChange={setDates} icon={I.cal} flex={1.3} minWidth={180} />
-      <CompactSelect label="Length" value={duration} onChange={setDuration} icon={I.cal} options={[{value:'any',label:'Any length'},{value:'short',label:'3–6 days'},{value:'mid',label:'7–10 days'},{value:'long',label:'11+ days'}]} flex={0.9} />
-      <CompactTravelers label="Travelers" value={travelers} onChange={setTravelers} flex={1} />
-    </>} />
+    <CompactBase mobile={mobile} onSearch={onSearch} summary={summary}
+      mobileModal={<>
+        <window.LocationField label="Destination" value={dest} onChange={setDest} placeholder="Country or region" icon={I.pin} flex={1} product="tours" />
+        <window.DateRangeField label="Departure window" value={dates} onChange={setDates} icon={I.cal} flex={1} />
+        <SF label="Tour length" value={duration} onChange={setDuration} icon={I.cal}
+          options={[{value:'any',label:'Any length'},{value:'short',label:'3 – 6 days'},{value:'mid',label:'7 – 10 days'},{value:'long',label:'11+ days'}]}
+          flex={1} minWidth={170} />
+        <window.TravelersField label="Travelers" value={travelers} onChange={setTravelers} options={[]} flex={1} />
+      </>}
+      fields={<>
+        <CompactLocation label="Destination" value={dest} onChange={setDest} icon={I.pin} flex={1.2} product="tours" />
+        <CompactDate label="Departure window" value={dates} onChange={setDates} icon={I.cal} flex={1.3} minWidth={180} />
+        <CompactSelect label="Length" value={duration} onChange={setDuration} icon={I.cal} options={[{value:'any',label:'Any length'},{value:'short',label:'3–6 days'},{value:'mid',label:'7–10 days'},{value:'long',label:'11+ days'}]} flex={0.9} />
+        <CompactTravelers label="Travelers" value={travelers} onChange={setTravelers} flex={1} />
+      </>}
+    />
   );
 }
 function ActivityCompact({ mobile, onSearch }) {
@@ -458,10 +573,16 @@ function ActivityCompact({ mobile, onSearch }) {
   const [date, setDate] = React.useState({ start: 'May 18, 2026', end: '' });
   const summary = { main: dest, sub: date.start || 'Any date' };
   return (
-    <CompactBase mobile={mobile} onSearch={onSearch} summary={summary} fields={<>
-      <CompactLocation label="Where" value={dest} onChange={setDest} icon={I.pin} flex={2} product="activities" />
-      <CompactDate label="Date" value={date} onChange={setDate} icon={I.cal} flex={1.2} />
-    </>} />
+    <CompactBase mobile={mobile} onSearch={onSearch} summary={summary}
+      mobileModal={<>
+        <window.LocationField label="Where" value={dest} onChange={setDest} placeholder="City or attraction" icon={I.pin} flex={1} product="activities" />
+        <window.DateRangeField label="Date" value={date} onChange={setDate} icon={I.cal} flex={1} />
+      </>}
+      fields={<>
+        <CompactLocation label="Where" value={dest} onChange={setDest} icon={I.pin} flex={2} product="activities" />
+        <CompactDate label="Date" value={date} onChange={setDate} icon={I.cal} flex={1.2} />
+      </>}
+    />
   );
 }
 function PackageCompact({ mobile, onSearch }) {
@@ -473,13 +594,26 @@ function PackageCompact({ mobile, onSearch }) {
   const comboLabel = { 'flight-hotel':'Flight + Hotel', 'flight-hotel-car':'Flight + Hotel + Car', 'hotel-car':'Hotel + Car' }[combo];
   const summary = { main: `${from} → ${to}`, sub: `${comboLabel} · ${dates.start} – ${dates.end} · ${travelers.adults} adults` };
   return (
-    <CompactBase mobile={mobile} onSearch={onSearch} summary={summary} fields={<>
-      <CompactSelect label="Bundle" value={combo} onChange={setCombo} icon={I.pin} options={[{value:'flight-hotel',label:'Flight + Hotel'},{value:'flight-hotel-car',label:'Flight + Hotel + Car'},{value:'hotel-car',label:'Hotel + Car'}]} flex={1} minWidth={170} />
-      {combo.startsWith('flight') && <CompactLocation label="From" value={from} onChange={setFrom} icon={I.plane} flex={0.9} minWidth={110} product="flights" />}
-      <CompactLocation label="To" value={to} onChange={setTo} icon={I.pin} flex={1} product="packages" />
-      <CompactDate label="When" value={dates} onChange={setDates} icon={I.cal} flex={1.2} />
-      <CompactTravelers label="Travelers" value={travelers} onChange={setTravelers} options={['rooms']} flex={1} />
-    </>} />
+    <CompactBase mobile={mobile} onSearch={onSearch} summary={summary}
+      mobileModal={<>
+        <SF label="Bundle" value={combo} onChange={setCombo} icon={I.pkg}
+          options={[{value:'flight-hotel',label:'Flight + Hotel'},{value:'flight-hotel-car',label:'Flight + Hotel + Car'},{value:'hotel-car',label:'Hotel + Car'}]}
+          flex={1} minWidth={180} />
+        {combo.startsWith('flight') && (
+          <window.LocationField label="Flying from" value={from} onChange={setFrom} placeholder="City or airport" icon={I.plane} flex={1} product="flights" />
+        )}
+        <window.LocationField label="Going to" value={to} onChange={setTo} placeholder="City or resort" icon={I.pin} flex={1} product="packages" />
+        <window.DateRangeField label="When" value={dates} onChange={setDates} icon={I.cal} flex={1} />
+        <window.TravelersField label="Travelers" value={travelers} onChange={setTravelers} options={['rooms']} flex={1} />
+      </>}
+      fields={<>
+        <CompactSelect label="Bundle" value={combo} onChange={setCombo} icon={I.pin} options={[{value:'flight-hotel',label:'Flight + Hotel'},{value:'flight-hotel-car',label:'Flight + Hotel + Car'},{value:'hotel-car',label:'Hotel + Car'}]} flex={1} minWidth={170} />
+        {combo.startsWith('flight') && <CompactLocation label="From" value={from} onChange={setFrom} icon={I.plane} flex={0.9} minWidth={110} product="flights" />}
+        <CompactLocation label="To" value={to} onChange={setTo} icon={I.pin} flex={1} product="packages" />
+        <CompactDate label="When" value={dates} onChange={setDates} icon={I.cal} flex={1.2} />
+        <CompactTravelers label="Travelers" value={travelers} onChange={setTravelers} options={['rooms']} flex={1} />
+      </>}
+    />
   );
 }
 function RentalCompact({ mobile, onSearch }) {
@@ -488,11 +622,18 @@ function RentalCompact({ mobile, onSearch }) {
   const [travelers, setTravelers] = React.useState({ adults: 4, children: 2, rooms: 2 });
   const summary = { main: where, sub: `${dates.start} – ${dates.end} · ${travelers.adults + travelers.children} guests, ${travelers.rooms} bedrooms` };
   return (
-    <CompactBase mobile={mobile} onSearch={onSearch} summary={summary} fields={<>
-      <CompactLocation label="Where" value={where} onChange={setWhere} icon={I.pin} flex={1.5} product="rentals" />
-      <CompactDate label="When" value={dates} onChange={setDates} icon={I.cal} flex={1.2} />
-      <CompactTravelers label="Guests" value={travelers} onChange={setTravelers} options={['rooms']} flex={1} />
-    </>} />
+    <CompactBase mobile={mobile} onSearch={onSearch} summary={summary}
+      mobileModal={<>
+        <window.LocationField label="Where to" value={where} onChange={setWhere} placeholder="City, region, or property name" icon={I.pin} flex={1} product="rentals" />
+        <window.DateRangeField label="When" value={dates} onChange={setDates} icon={I.cal} flex={1} />
+        <window.TravelersField label="Guests" value={travelers} onChange={setTravelers} options={['rooms']} flex={1} />
+      </>}
+      fields={<>
+        <CompactLocation label="Where" value={where} onChange={setWhere} icon={I.pin} flex={1.5} product="rentals" />
+        <CompactDate label="When" value={dates} onChange={setDates} icon={I.cal} flex={1.2} />
+        <CompactTravelers label="Guests" value={travelers} onChange={setTravelers} options={['rooms']} flex={1} />
+      </>}
+    />
   );
 }
 
