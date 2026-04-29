@@ -486,6 +486,171 @@ function MobileSearchModal({ open, onClose, onSearch, children, title = 'Edit se
 }
 window.MobileSearchModal = MobileSearchModal;
 
+// ── Mobile bottom sheet ──────────────────────────────────────────────────────
+// Slides up from the bottom; used by mobile field pickers inside the modal.
+function MobileBottomSheet({ open, onClose, title, children, doneLabel = 'Done' }) {
+  if (!open) return null;
+  return (
+    <>
+      <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.45)', zIndex:9300 }} onClick={onClose} />
+      <div style={{ position:'fixed', bottom:0, left:0, right:0, zIndex:9400,
+        background:'#fff', borderRadius:'20px 20px 0 0', maxHeight:'85vh', overflowY:'auto',
+        padding:'0 16px 32px', animation:'mobileSheetUp 0.22s ease' }}>
+        <style>{`@keyframes mobileSheetUp { from { transform:translateY(100%) } to { transform:translateY(0) } }`}</style>
+        <div style={{ width:40, height:4, background:'#e5e7eb', borderRadius:2, margin:'12px auto 16px' }} />
+        {title && <Text fw={700} size="md" mb="md">{title}</Text>}
+        {children}
+        <Button fullWidth mt="lg" color="teal" size="lg" radius="md" onClick={onClose} style={{ fontWeight:600 }}>{doneLabel}</Button>
+      </div>
+    </>
+  );
+}
+window.MobileBottomSheet = MobileBottomSheet;
+
+function MobileFieldRow({ icon, label, value, placeholder, onClick }) {
+  return (
+    <div onClick={onClick} style={{
+      background:'#fff', border:'1px solid #e5e7eb', borderRadius:12,
+      padding:'14px 16px', display:'flex', alignItems:'center', gap:12,
+      cursor:'pointer', minHeight:68, userSelect:'none', WebkitTapHighlightColor:'transparent' }}>
+      {icon && <span style={{ width:20, height:20, color:'#9ca3af', flexShrink:0, display:'inline-flex', alignItems:'center', justifyContent:'center' }}>{icon}</span>}
+      <div style={{ flex:1, minWidth:0 }}>
+        <div style={{ fontSize:11, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'0.06em', lineHeight:1 }}>{label}</div>
+        <div style={{ fontSize:16, fontWeight:600, color: value ? '#111827' : '#d1d5db', marginTop:3, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+          {value || placeholder || 'Add...'}
+        </div>
+      </div>
+      <span style={{ color:'#d1d5db', fontSize:20, lineHeight:1 }}>›</span>
+    </div>
+  );
+}
+window.MobileFieldRow = MobileFieldRow;
+
+function MobileLocationField({ label, value, onChange, icon, placeholder, product }) {
+  const [open, setOpen] = React.useState(false);
+  const [query, setQuery] = React.useState(value || '');
+  const allPlaces = (window.PLACES && window.PLACES[product]) || [];
+  const filtered = query ? allPlaces.filter(p => p.toLowerCase().includes(query.toLowerCase())) : allPlaces;
+  const select = (v) => { onChange(v); setQuery(v); setOpen(false); };
+  return (
+    <>
+      <MobileFieldRow icon={icon} label={label} value={value} placeholder={placeholder}
+        onClick={() => { setQuery(value || ''); setOpen(true); }} />
+      <MobileBottomSheet open={open} onClose={() => setOpen(false)} title={label} doneLabel="Confirm">
+        <input type="text" value={query} onChange={e => setQuery(e.target.value)} autoFocus
+          placeholder={placeholder || 'Search...'}
+          style={{ width:'100%', border:'1px solid #e5e7eb', borderRadius:10, padding:'12px 16px',
+            fontSize:16, outline:'none', fontFamily:'inherit', color:'#111', background:'#f9fafb' }} />
+        <Stack gap={0} mt="sm">
+          {filtered.slice(0, 8).map((s, i) => (
+            <UnstyledButton key={s} onClick={() => select(s)}
+              style={{ padding:'14px 4px', borderBottom: i < Math.min(filtered.length,8)-1 ? '1px solid #f3f4f6' : 'none',
+                fontSize:15, textAlign:'left', color:'#111827', fontFamily:'inherit' }}>{s}</UnstyledButton>
+          ))}
+          {filtered.length === 0 && query && (
+            <UnstyledButton onClick={() => select(query)}
+              style={{ padding:'14px 4px', fontSize:15, color:'#4263EB', fontFamily:'inherit' }}>Use "{query}"</UnstyledButton>
+          )}
+        </Stack>
+      </MobileBottomSheet>
+    </>
+  );
+}
+window.MobileLocationField = MobileLocationField;
+
+function MobileDateField({ label, value, onChange, icon }) {
+  const [open, setOpen] = React.useState(false);
+  const [start, setStart] = React.useState(value?.start || '');
+  const [end, setEnd] = React.useState(value?.end || '');
+  const display = start && end ? `${start} – ${end}` : start || '';
+  const confirm = () => { onChange({ start, end }); setOpen(false); };
+  return (
+    <>
+      <MobileFieldRow icon={icon} label={label} value={display} placeholder="Add dates" onClick={() => { setStart(value?.start||''); setEnd(value?.end||''); setOpen(true); }} />
+      <MobileBottomSheet open={open} onClose={confirm} title={label} doneLabel="Confirm dates">
+        <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
+          <div>
+            <div style={{ fontSize:12, fontWeight:600, color:'#6b7280', marginBottom:4 }}>Start</div>
+            <input type="date" value={start} onChange={e => setStart(e.target.value)}
+              style={{ width:'100%', border:'1px solid #e5e7eb', borderRadius:10, padding:'12px 16px',
+                fontSize:16, fontFamily:'inherit', background:'#f9fafb', outline:'none', color:'#111' }} />
+          </div>
+          <div>
+            <div style={{ fontSize:12, fontWeight:600, color:'#6b7280', marginBottom:4 }}>End</div>
+            <input type="date" value={end} onChange={e => setEnd(e.target.value)}
+              style={{ width:'100%', border:'1px solid #e5e7eb', borderRadius:10, padding:'12px 16px',
+                fontSize:16, fontFamily:'inherit', background:'#f9fafb', outline:'none', color:'#111' }} />
+          </div>
+        </div>
+      </MobileBottomSheet>
+    </>
+  );
+}
+window.MobileDateField = MobileDateField;
+
+function MobileSelectField({ label, value, onChange, icon, options }) {
+  const [open, setOpen] = React.useState(false);
+  const display = options.find(o => (o.value ?? o) === value)?.label ?? value;
+  return (
+    <>
+      <MobileFieldRow icon={icon} label={label} value={display} placeholder="Select" onClick={() => setOpen(true)} />
+      <MobileBottomSheet open={open} onClose={() => setOpen(false)} title={label}>
+        <div style={{ display:'flex', flexDirection:'column' }}>
+          {options.map((o, i) => {
+            const v = o.value ?? o; const l = o.label ?? o; const active = v === value;
+            return (
+              <UnstyledButton key={v} onClick={() => { onChange(v); setOpen(false); }}
+                style={{ display:'flex', alignItems:'center', justifyContent:'space-between',
+                  padding:'16px 8px', borderBottom: i < options.length-1 ? '1px solid #f3f4f6' : 'none',
+                  fontSize:16, fontWeight: active ? 700 : 500, color: active ? '#4263EB' : '#111827', fontFamily:'inherit' }}>
+                <span>{l}</span>
+                {active && <span>✓</span>}
+              </UnstyledButton>
+            );
+          })}
+        </div>
+      </MobileBottomSheet>
+    </>
+  );
+}
+window.MobileSelectField = MobileSelectField;
+
+function MobileTravelersField({ label, value, onChange, icon, options = [] }) {
+  const [open, setOpen] = React.useState(false);
+  const [local, setLocal] = React.useState(value);
+  const parts = [];
+  if (local.adults != null) parts.push(`${local.adults} ${local.adults===1?'adult':'adults'}`);
+  if (local.children != null) parts.push(`${local.children} ${local.children===1?'child':'children'}`);
+  if (options.includes('rooms') && local.rooms != null) parts.push(`${local.rooms} ${local.rooms===1?'room':'rooms'}`);
+  const display = parts.join(' · ');
+  const confirm = () => { onChange(local); setOpen(false); };
+  const Row = ({ k, lbl, min = 0 }) => (
+    <Group justify="space-between" wrap="nowrap"
+      style={{ padding:'14px 0', borderBottom:'1px solid #f3f4f6' }}>
+      <Text size="md" fw={500}>{lbl}</Text>
+      <Group gap={12} wrap="nowrap" align="center">
+        <ActionIcon variant="default" size="lg" radius="xl"
+          disabled={(local[k]??0)<=min} onClick={() => setLocal(p => ({ ...p, [k]: Math.max(min,(p[k]??0)-1) }))}>−</ActionIcon>
+        <Text size="md" fw={700} w={24} ta="center">{local[k]??0}</Text>
+        <ActionIcon variant="default" size="lg" radius="xl"
+          onClick={() => setLocal(p => ({ ...p, [k]: (p[k]??0)+1 }))}>+</ActionIcon>
+      </Group>
+    </Group>
+  );
+  return (
+    <>
+      <MobileFieldRow icon={icon} label={label} value={display} placeholder="Add travelers"
+        onClick={() => { setLocal(value); setOpen(true); }} />
+      <MobileBottomSheet open={open} onClose={confirm} title={label} doneLabel="Confirm">
+        <Row k="adults" lbl="Adults" min={1} />
+        <Row k="children" lbl="Children" />
+        {options.includes('rooms') && <Row k="rooms" lbl="Rooms" min={1} />}
+      </MobileBottomSheet>
+    </>
+  );
+}
+window.MobileTravelersField = MobileTravelersField;
+
 // Compact form shell — single row, dense, dark-pill backdrop, used in
 // the results-page nav. Same field components, smaller padding.
 // On mobile, renders as a single full-width "search summary" pill that

@@ -161,8 +161,8 @@ function App() {
             <window.ResultsPage product={tweaks.activeProduct} mobile={isMobile} uiMode={tweaks.uiMode} />
           )}
 
-          {/* Mode indicator badge — always visible, click to toggle */}
-          {(() => {
+          {/* Mode indicator badge — hidden on mobile, click to toggle */}
+          {!isMobile && (() => {
             const pill = {
               position: 'fixed', bottom: 20, left: '50%', transform: 'translateX(-50%)',
               display: 'flex', alignItems: 'center', gap: 8,
