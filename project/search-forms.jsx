@@ -548,7 +548,7 @@ function MobileLocationField({ label, value, onChange, icon, placeholder, produc
               color:'#111827', padding:0, marginTop:3, width:'100%', fontFamily:'inherit' }} />
         </div>
       </div>
-      {focused && filtered.length > 0 && (
+      {filtered.length > 0 && (
         <div style={{ position:'absolute', top:'calc(100% + 4px)', left:0, right:0, zIndex:200,
           background:'#fff', border:'1px solid #e5e7eb', borderRadius:12, overflow:'hidden',
           boxShadow:'0 4px 20px rgba(0,0,0,0.12)' }}>
